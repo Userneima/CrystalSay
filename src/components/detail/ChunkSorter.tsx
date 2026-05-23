@@ -64,7 +64,7 @@ export default function ChunkSorter({ crystal, onComplete }: ChunkSorterProps) {
 
   return (
     <div className="w-full max-w-lg mx-auto">
-      <p className="text-white/40 text-xs tracking-wider mb-4 text-center">根据中文提示，将语块按正确顺序还原</p>
+      <p className="text-white/40 text-xs sm:text-xs tracking-wider mb-4 text-center">根据中文提示，将语块按正确顺序还原</p>
 
       {/* Slots area */}
       <div
@@ -83,7 +83,7 @@ export default function ChunkSorter({ crystal, onComplete }: ChunkSorterProps) {
           <button
             key={`${chunk}-${i}`}
             onClick={() => handleRemove(i)}
-            className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${
+            className={`min-h-[44px] px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
               result === 'correct'
                 ? 'bg-green-400/20 text-green-300 border border-green-400/30'
                 : 'bg-white/[0.08] text-white/80 border border-white/[0.12] hover:bg-white/[0.14]'
@@ -101,7 +101,7 @@ export default function ChunkSorter({ crystal, onComplete }: ChunkSorterProps) {
             key={chunk}
             onClick={() => handlePick(chunk)}
             disabled={result === 'correct'}
-            className="px-4 py-2.5 rounded-xl text-sm font-medium bg-white/[0.06] text-white/70 border border-white/[0.1] hover:bg-white/[0.12] hover:text-white/90 hover:border-white/[0.2] transition-all disabled:opacity-30 disabled:cursor-default"
+            className="min-h-[44px] px-4 py-3 rounded-xl text-sm font-medium bg-white/[0.06] text-white/70 border border-white/[0.1] hover:bg-white/[0.12] hover:text-white/90 hover:border-white/[0.2] transition-all disabled:opacity-30 disabled:cursor-default"
           >
             {chunk}
           </button>

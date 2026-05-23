@@ -5,6 +5,7 @@ import { useStore } from './store/useStore'
 import { loadCrystals } from './utils/loadData'
 import GalaxyPage from './pages/GalaxyPage'
 import DetailPage from './pages/DetailPage'
+import UpdatePage from './pages/UpdatePage'
 
 export default function App() {
   const location = useLocation()
@@ -31,6 +32,7 @@ export default function App() {
           <Routes location={location}>
             <Route path="/" element={<GalaxyPage />} />
             <Route path="/crystal/:id" element={<DetailPage />} />
+            <Route path="/update" element={<UpdatePage />} />
           </Routes>
         </motion.div>
       </AnimatePresence>

@@ -71,7 +71,7 @@ export default function SpeakPractice({ crystal, onComplete }: SpeakPracticeProp
       {!done ? (
         <button
           onClick={handleDone}
-          className="px-8 py-3 rounded-2xl font-bold text-sm transition-all"
+          className="min-h-[44px] px-8 py-3 rounded-2xl font-bold text-sm transition-all"
           style={{
             background: `linear-gradient(135deg, ${theme.primary}88, ${theme.glow}44)`,
             border: `1px solid ${theme.glow}44`,

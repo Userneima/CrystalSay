@@ -3,15 +3,30 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 
+interface ClusterPosition {
+  id: string
+  position: [number, number, number]
+}
+
 interface CameraControllerProps {
   targetPosition?: [number, number, number] | null
   onTargetReached?: () => void
+  clusterPositions?: ClusterPosition[]
+  onActiveClusterChange?: (clusterId: string | null) => void
 }
 
-export default function CameraController({ targetPosition, onTargetReached }: CameraControllerProps) {
+const PROXIMITY_THRESHOLD = 3
+
+export default function CameraController({
+  targetPosition,
+  onTargetReached,
+  clusterPositions,
+  onActiveClusterChange,
+}: CameraControllerProps) {
   const controlsRef = useRef<any>(null)
   const { camera } = useThree()
   const animating = useRef(false)
+  const lastActiveId = useRef<string | null>(null)
 
   useEffect(() => {
     if (targetPosition) {
@@ -32,6 +47,26 @@ export default function CameraController({ targetPosition, onTargetReached }: Ca
         onTargetReached?.()
       }
     }
+
+    // Cluster proximity tracking
+    if (clusterPositions && onActiveClusterChange && controlsRef.current) {
+      const camTarget = controlsRef.current.target as THREE.Vector3
+      let closestId: string | null = null
+      let closestDist = Infinity
+
+      for (const cp of clusterPositions) {
+        const dist = camTarget.distanceToSquared(new THREE.Vector3(...cp.position))
+        if (dist < PROXIMITY_THRESHOLD * PROXIMITY_THRESHOLD && dist < closestDist) {
+          closestDist = dist
+          closestId = cp.id
+        }
+      }
+
+      if (lastActiveId.current !== closestId) {
+        lastActiveId.current = closestId
+        onActiveClusterChange(closestId)
+      }
+    }
   })
 
   return (
@@ -42,6 +77,9 @@ export default function CameraController({ targetPosition, onTargetReached }: Ca
       minDistance={4}
       maxDistance={25}
       maxPolarAngle={Math.PI * 0.7}
+      enablePan
+      panSpeed={0.7}
+      screenSpacePanning
       autoRotate
       autoRotateSpeed={0.15}
       target={[0, 0, 0]}

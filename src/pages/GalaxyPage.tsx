@@ -1,12 +1,14 @@
-import { useState, useMemo, Suspense } from 'react'
+import { useState, useMemo, Suspense, useCallback } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { useNavigate } from 'react-router-dom'
 import * as THREE from 'three'
 import { useStore } from '../store/useStore'
+import type { Cluster } from '../types'
 import Starfield from '../components/galaxy/Starfield'
 import CameraController from '../components/galaxy/CameraController'
 import CrystalOrbit from '../components/galaxy/CrystalOrbit'
-import ClusterLabel from '../components/galaxy/ClusterLabel'
+import ClusterTagBar from '../components/galaxy/ClusterTagBar'
+import ClusterBeacon from '../components/galaxy/ClusterBeacon'
 
 // Deterministic hash for stable positions
 function hashId(id: string, seed: number): number {
@@ -17,9 +19,8 @@ function hashId(id: string, seed: number): number {
   return Math.abs(h) / 2147483647
 }
 
-function CrystalPositions({ onCrystalClick, onClusterClick }: {
+function CrystalPositions({ onCrystalClick }: {
   onCrystalClick: (id: string) => void
-  onClusterClick: (pos: [number, number, number]) => void
 }) {
   const crystals = useStore((s) => s.crystals)
   const clusters = useStore((s) => s.clusters)
@@ -47,19 +48,6 @@ function CrystalPositions({ onCrystalClick, onClusterClick }: {
 
   return (
     <>
-      {clusters.map((cluster) => (
-        <ClusterLabel
-          key={cluster.id}
-          name={cluster.name}
-          position={[
-            cluster.centerPosition[0],
-            cluster.centerPosition[1] + 2.5,
-            cluster.centerPosition[2],
-          ]}
-          crystalCount={cluster.crystalIds.length}
-          onClick={() => onClusterClick(cluster.centerPosition)}
-        />
-      ))}
       {crystals.map((crystal) => {
         const pos = crystalPositions.get(crystal.id)
         if (!pos) return null
@@ -76,9 +64,14 @@ function CrystalPositions({ onCrystalClick, onClusterClick }: {
   )
 }
 
-function Scene() {
+function Scene({ cameraTarget, onTargetReached, clusterPositions, onActiveClusterChange, onClusterClick }: {
+  cameraTarget: [number, number, number] | null
+  onTargetReached: () => void
+  clusterPositions: { id: string; position: [number, number, number] }[]
+  onActiveClusterChange: (id: string | null) => void
+  onClusterClick: (id: string) => void
+}) {
   const navigate = useNavigate()
-  const [cameraTarget, setCameraTarget] = useState<[number, number, number] | null>(null)
 
   return (
     <>
@@ -91,18 +84,51 @@ function Scene() {
       <fog attach="fog" args={['#02030a', 18, 55]} />
       <CameraController
         targetPosition={cameraTarget}
-        onTargetReached={() => setCameraTarget(null)}
+        onTargetReached={onTargetReached}
+        clusterPositions={clusterPositions}
+        onActiveClusterChange={onActiveClusterChange}
       />
-      <CrystalPositions
-        onCrystalClick={(id) => navigate(`/crystal/${id}`)}
-        onClusterClick={setCameraTarget}
-      />
+      <CrystalPositions onCrystalClick={(id) => navigate(`/crystal/${id}`)} />
+      {clusterPositions.map((cp) => (
+        <ClusterBeacon
+          key={cp.id}
+          position={cp.position}
+          onClick={() => onClusterClick(cp.id)}
+        />
+      ))}
     </>
   )
 }
 
 export default function GalaxyPage() {
+  const navigate = useNavigate()
   const loaded = useStore((s) => s.loaded)
+  const clusters = useStore((s) => s.clusters)
+
+  const [cameraTarget, setCameraTarget] = useState<[number, number, number] | null>(null)
+  const [activeClusterId, setActiveClusterId] = useState<string | null>(null)
+
+  const clusterPositions = useMemo(
+    () => clusters.map((c) => ({ id: c.id, position: c.centerPosition })),
+    [clusters],
+  )
+
+  const handleClusterClick = useCallback((cluster: Cluster) => {
+    setCameraTarget(cluster.centerPosition)
+    setActiveClusterId(cluster.id)
+  }, [])
+
+  const handleBeaconClick = useCallback((clusterId: string) => {
+    const cluster = clusters.find((c) => c.id === clusterId)
+    if (cluster) {
+      setCameraTarget(cluster.centerPosition)
+      setActiveClusterId(cluster.id)
+    }
+  }, [clusters])
+
+  const handleTargetReached = useCallback(() => {
+    setCameraTarget(null)
+  }, [])
 
   if (!loaded) {
     return (
@@ -123,7 +149,13 @@ export default function GalaxyPage() {
         style={{ background: '#02030a' }}
       >
         <Suspense fallback={null}>
-          <Scene />
+          <Scene
+            cameraTarget={cameraTarget}
+            onTargetReached={handleTargetReached}
+            clusterPositions={clusterPositions}
+            onActiveClusterChange={setActiveClusterId}
+            onClusterClick={handleBeaconClick}
+          />
         </Suspense>
       </Canvas>
 
@@ -133,9 +165,33 @@ export default function GalaxyPage() {
         <p className="text-white/20 text-xs mt-1 tracking-[0.2em]">表 达 晶 体 星 系</p>
       </div>
 
+      {/* Import entry */}
+      <div className="absolute top-6 right-5 pointer-events-none z-10">
+        <button
+          onClick={() => navigate('/update')}
+          className="pointer-events-auto px-3 py-1.5 rounded-full text-xs text-white/30 border border-white/[0.08] hover:text-white/50 hover:border-white/[0.15] transition-all"
+        >
+          更新
+        </button>
+      </div>
+
+      {/* Cluster tag bar */}
+      <div className="absolute top-28 left-0 right-0 flex justify-center pointer-events-none z-10">
+        <div className="pointer-events-auto max-w-[85vw]">
+          <ClusterTagBar
+            clusters={clusters}
+            activeClusterId={activeClusterId}
+            onClusterClick={handleClusterClick}
+          />
+        </div>
+      </div>
+
       {/* Hint */}
-      <div className="absolute bottom-6 left-0 right-0 text-center pointer-events-none z-10">
-        <p className="text-white/15 text-xs">拖拽旋转 · 滚轮缩放 · 点击晶体进入学习</p>
+      <div className="absolute bottom-6 left-0 right-0 text-center pointer-events-none z-10 safe-bottom">
+        <p className="text-white/15 text-xs">
+  <span className="hint-desktop">拖拽旋转 · 滚轮缩放 · 右键平移</span>
+  <span className="hint-mobile">单指旋转 · 双指缩放 · 双指平移</span>
+</p>
       </div>
     </div>
   )

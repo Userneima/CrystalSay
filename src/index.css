@@ -4,7 +4,7 @@
   --bg-deep: #02030a;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; }
 
 html, body, #root {
   width: 100%; height: 100%; overflow: hidden;
@@ -13,8 +13,9 @@ html, body, #root {
 body {
   background: var(--bg-deep);
   color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+  font-family: 'SF Pro Display', 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   user-select: none;
 }
 
@@ -50,4 +51,25 @@ button {
 
 .float {
   animation: float 3s ease-in-out infinite;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile / desktop hint toggle */
+.hint-desktop { display: inline; }
+.hint-mobile { display: none; }
+@media (pointer: coarse) {
+  .hint-desktop { display: none; }
+  .hint-mobile { display: inline; }
+}
+
+/* Safe area for notch phones */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }

@@ -1,124 +1,95 @@
 [
   {
-    "crystal_name": "早该知道晶",
+    "crystal_name": "早该知道",
     "english_sentence": "I should have known you were the newspaper thief.",
     "chinese_meaning": "我早该知道你就是偷报纸的人。",
     "usage_scene": "发现某件事真相后，表达自己之前本该察觉到。",
     "expression_function": "表达事后判断或轻微责备",
-    "chunks": [
-      "I should have known",
-      "you were",
-      "the newspaper thief"
-    ],
+    "chunks": ["I should have known", "you were", "the newspaper thief"],
     "difficulty": "中等",
     "topic_tag": "观点表达",
     "reuse_value": 5,
     "visual_hint": "琥珀色裂纹晶体，像真相突然浮现出来"
   },
   {
-    "crystal_name": "早该说晶",
+    "crystal_name": "早该告诉你",
     "english_sentence": "I should have told you his secret long ago.",
     "chinese_meaning": "我早就应该告诉你他的秘密。",
     "usage_scene": "后悔自己没有早点告诉别人某件事。",
     "expression_function": "表达后悔",
-    "chunks": [
-      "I should have told you",
-      "his secret",
-      "long ago"
-    ],
+    "chunks": ["I should have told you", "his secret", "long ago"],
     "difficulty": "中等",
     "topic_tag": "社交",
     "reuse_value": 5,
     "visual_hint": "带有封印感的金色晶体，内部像藏着一个迟迟没说出口的秘密"
   },
   {
-    "crystal_name": "不止我晶",
+    "crystal_name": "不止我一个",
     "english_sentence": "I'm not the only guilty one here.",
     "chinese_meaning": "这里有责任的可不止我一个。",
     "usage_scene": "被指责时，说明责任不是自己一个人的。",
     "expression_function": "反驳指责或分担责任",
-    "chunks": [
-      "I'm not",
-      "the only guilty one",
-      "here"
-    ],
+    "chunks": ["I'm not", "the only guilty one", "here"],
     "difficulty": "中等",
     "topic_tag": "社交",
     "reuse_value": 4,
     "visual_hint": "紫色双面晶体，一侧明亮一侧阴影，象征责任不只在一方"
   },
   {
-    "crystal_name": "合伙晶",
+    "crystal_name": "两个人干的",
     "english_sentence": "It was a two-man job.",
     "chinese_meaning": "这是两个人一起干的事。",
     "usage_scene": "解释某件事不是一个人完成，而是两个人共同参与。",
     "expression_function": "说明共同参与",
-    "chunks": [
-      "It was",
-      "a two-man job"
-    ],
+    "chunks": ["It was", "a two-man job"],
     "difficulty": "简单",
     "topic_tag": "社交",
     "reuse_value": 3,
     "visual_hint": "两颗小晶体互相嵌合，像一起完成同一个任务"
   },
   {
-    "crystal_name": "聊聊晶",
+    "crystal_name": "我们谈谈",
     "english_sentence": "We need to talk.",
     "chinese_meaning": "我们得谈谈。",
     "usage_scene": "想认真开启一场沟通，尤其是讨论问题或矛盾。",
     "expression_function": "提出沟通需求",
-    "chunks": [
-      "We need",
-      "to talk"
-    ],
+    "chunks": ["We need", "to talk"],
     "difficulty": "简单",
     "topic_tag": "社交",
     "reuse_value": 5,
     "visual_hint": "蓝色对话气泡形晶体，内部有两束光靠近"
   },
   {
-    "crystal_name": "对我有效晶",
+    "crystal_name": "对我不一定对你有效",
     "english_sentence": "What worked for me might not work for you.",
     "chinese_meaning": "对我有用的方法，不一定适合你。",
     "usage_scene": "分享个人经验时，提醒对方方法因人而异。",
     "expression_function": "表达经验差异",
-    "chunks": [
-      "What worked for me",
-      "might not",
-      "work for you"
-    ],
+    "chunks": ["What worked for me", "might not", "work for you"],
     "difficulty": "中等",
     "topic_tag": "学习",
     "reuse_value": 5,
     "visual_hint": "左右颜色不同的双面晶体，表示同一种方法对不同人效果不同"
   },
   {
-    "crystal_name": "给你晶",
+    "crystal_name": "给你",
     "english_sentence": "Here you go.",
     "chinese_meaning": "给你。",
     "usage_scene": "把东西递给别人时使用，语气自然口语。",
     "expression_function": "递交物品",
-    "chunks": [
-      "Here",
-      "you go"
-    ],
+    "chunks": ["Here", "you go"],
     "difficulty": "简单",
     "topic_tag": "生活",
     "reuse_value": 4,
     "visual_hint": "浅绿色小晶体，像从手心递出去的一点光"
   },
   {
-    "crystal_name": "一直带着晶",
+    "crystal_name": "一直带着",
     "english_sentence": "I've been carrying that around since Gabe was born.",
     "chinese_meaning": "自从 Gabe 出生以来，我就一直带着那个东西。",
     "usage_scene": "表达某个动作从过去某个时间点开始一直持续到现在。",
     "expression_function": "描述持续行为",
-    "chunks": [
-      "I've been carrying",
-      "that around",
-      "since Gabe was born"
-    ],
+    "chunks": ["I've been carrying", "that around", "since Gabe was born"],
     "difficulty": "较难",
     "topic_tag": "生活",
     "reuse_value": 4,

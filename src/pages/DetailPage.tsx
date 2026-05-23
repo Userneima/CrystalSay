@@ -42,9 +42,9 @@ export default function DetailPage() {
 
   return (
     <div className="w-full h-full overflow-y-auto bg-[#02030a]">
-      <div className="min-h-full flex flex-col items-center px-4 py-8 max-w-2xl mx-auto">
+      <div className="min-h-full px-5 py-6 sm:px-8 sm:py-8 lg:px-10">
         {/* Top bar */}
-        <div className="w-full flex items-center justify-between mb-8">
+        <div className="mx-auto flex w-full max-w-5xl items-center justify-between">
           <button
             onClick={() => navigate('/')}
             className="flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-sm"
@@ -60,43 +60,47 @@ export default function DetailPage() {
         </div>
 
         {/* Progress */}
-        <ProgressBar step={stageIndex} total={3} labels={stageLabels} />
+        <div className="mx-auto mt-7 w-full max-w-4xl">
+          <ProgressBar step={stageIndex} total={3} labels={stageLabels} />
+        </div>
 
         {/* Stage content */}
-        {stage === 'info' && (
-          <div className="flex flex-col items-center gap-6 w-full">
-            <CrystalInfo crystal={crystal} />
-            <button
-              onClick={() => setStage('sort')}
-              className="px-6 py-3 rounded-2xl font-bold text-sm bg-white/[0.08] border border-white/[0.12] text-white/80 hover:bg-white/[0.14] hover:text-white transition-all"
-            >
-              开始练习
-            </button>
-          </div>
-        )}
-
-        {stage === 'sort' && (
-          <ChunkSorter crystal={crystal} onComplete={handleSortComplete} />
-        )}
-
-        {stage === 'speak' && (
-          <SpeakPractice crystal={crystal} onComplete={handleSpeakComplete} />
-        )}
-
-        {stage === 'done' && (
-          <div className="flex flex-col items-center gap-6 w-full">
-            <CrystalInfo crystal={crystal} />
-            <div className="text-center text-green-300/80 text-sm">
-              ✓ 这颗晶体已经被你点亮，收录到你的表达云中
+        <main className="mx-auto mt-10 flex w-full max-w-4xl flex-col items-center">
+          {stage === 'info' && (
+            <div className="flex w-full flex-col items-center gap-8">
+              <CrystalInfo crystal={crystal} />
+              <button
+                onClick={() => setStage('sort')}
+                className="px-6 py-3 rounded-2xl font-bold text-sm bg-white/[0.08] border border-white/[0.12] text-white/80 hover:bg-white/[0.14] hover:text-white transition-all"
+              >
+                开始练习
+              </button>
             </div>
-            <button
-              onClick={() => navigate('/')}
-              className="px-6 py-3 rounded-2xl font-bold text-sm bg-white/[0.08] border border-white/[0.12] text-white/80 hover:bg-white/[0.14] transition-all"
-            >
-              返回星系
-            </button>
-          </div>
-        )}
+          )}
+
+          {stage === 'sort' && (
+            <ChunkSorter crystal={crystal} onComplete={handleSortComplete} />
+          )}
+
+          {stage === 'speak' && (
+            <SpeakPractice crystal={crystal} onComplete={handleSpeakComplete} />
+          )}
+
+          {stage === 'done' && (
+            <div className="flex w-full flex-col items-center gap-8">
+              <CrystalInfo crystal={crystal} />
+              <div className="text-center text-green-300/80 text-sm">
+                ✓ 这颗晶体已经被你点亮，收录到你的表达云中
+              </div>
+              <button
+                onClick={() => navigate('/')}
+                className="px-6 py-3 rounded-2xl font-bold text-sm bg-white/[0.08] border border-white/[0.12] text-white/80 hover:bg-white/[0.14] transition-all"
+              >
+                返回星系
+              </button>
+            </div>
+          )}
+        </main>
       </div>
     </div>
   )
