@@ -161,18 +161,8 @@ export default function GalaxyPage() {
 
       {/* Title */}
       <div className="absolute top-6 left-0 right-0 text-center pointer-events-none z-10">
-        <h1 className="text-white/70 text-xl tracking-[0.35em] font-bold">CRYSTAL SAY</h1>
-        <p className="text-white/20 text-xs mt-1 tracking-[0.2em]">表 达 晶 体 星 系</p>
-      </div>
-
-      {/* Import entry */}
-      <div className="absolute top-6 right-5 pointer-events-none z-10">
-        <button
-          onClick={() => navigate('/update')}
-          className="pointer-events-auto px-3 py-1.5 rounded-full text-xs text-white/30 border border-white/[0.08] hover:text-white/50 hover:border-white/[0.15] transition-all"
-        >
-          更新
-        </button>
+        <h1 className="text-white/70 text-lg sm:text-xl tracking-[0.25em] sm:tracking-[0.35em] font-bold">CRYSTAL SAY</h1>
+        <p className="text-white/20 text-[10px] sm:text-xs mt-0.5 tracking-[0.15em] sm:tracking-[0.2em]">表 达 晶 体 星 系</p>
       </div>
 
       {/* Cluster tag bar */}
@@ -186,12 +176,37 @@ export default function GalaxyPage() {
         </div>
       </div>
 
-      {/* Hint */}
-      <div className="absolute bottom-6 left-0 right-0 text-center pointer-events-none z-10 safe-bottom">
-        <p className="text-white/15 text-xs">
-  <span className="hint-desktop">拖拽旋转 · 滚轮缩放 · 右键平移</span>
-  <span className="hint-mobile">单指旋转 · 双指缩放 · 双指平移</span>
-</p>
+      {/* Bottom bar: icon+text nav left & right, hint centered */}
+      <div className="absolute bottom-6 left-5 right-5 z-10 safe-bottom">
+        <div className="flex items-end justify-between">
+          {/* left: history */}
+          <button
+            onClick={() => navigate('/history')}
+            className="flex items-center gap-1.5 text-white/20 hover:text-white/40 active:scale-95 transition-all"
+          >
+            <svg viewBox="0 0 16 16" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="8" cy="8" r="6.5" />
+              <path d="M8 4.5v3.5l2 2" />
+            </svg>
+            <span className="text-xs sm:text-sm">历史</span>
+          </button>
+          {/* right: update */}
+          <button
+            onClick={() => navigate('/update')}
+            className="flex items-center gap-1.5 text-white/20 hover:text-white/40 active:scale-95 transition-all"
+          >
+            <svg viewBox="0 0 16 16" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M8 1.5l6 4.5-3 8.5H5l-3-8.5 6-4.5z" />
+              <path d="M8 1.5l-3 4.5h6l-3-4.5z" opacity="0.5" />
+            </svg>
+            <span className="text-xs sm:text-sm">更新</span>
+          </button>
+        </div>
+        {/* hint — centered */}
+        <p className="text-center text-white/15 text-[11px] sm:text-xs leading-relaxed mt-1.5 pointer-events-none">
+          <span className="hint-desktop">拖拽旋转 · 滚轮缩放 · 右键平移</span>
+          <span className="hint-mobile">单指旋转 · 双指缩放 · 双指平移</span>
+        </p>
       </div>
     </div>
   )

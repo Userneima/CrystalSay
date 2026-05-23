@@ -1,122 +1,145 @@
-[
-  {
-    "crystal_name": "话赶话聊了三小时",
-    "english_sentence": "One thing led to another, and before I knew it we'd been talking for three hours.",
-    "chinese_meaning": "话赶话，不知不觉就聊了三个小时。",
-    "usage_scene": "描述聊天的自然延续，不知不觉时间就过去了。",
-    "expression_function": "描述自然而然发生的事",
-    "chunks": ["One thing led to another", "and before I knew it", "we'd been talking", "for three hours"],
-    "difficulty": "中等",
-    "topic_tag": "社交",
-    "reuse_value": 4,
-    "visual_hint": "金色螺旋纹晶体，像两股对话不断缠绕延伸"
-  },
-  {
-    "crystal_name": "说不上哪里不对",
-    "english_sentence": "I can't quite put my finger on it, but something feels off.",
-    "chinese_meaning": "我说不上来，但总觉得哪里不太对。",
-    "usage_scene": "感觉到不对劲但说不清具体是什么，适合表达模糊的直觉。",
-    "expression_function": "表达模糊直觉或疑虑",
-    "chunks": ["I can't quite", "put my finger on it", "but something feels off"],
-    "difficulty": "中等",
-    "topic_tag": "观点表达",
-    "reuse_value": 5,
-    "visual_hint": "半透明紫色晶体，内部有雾气涌动，像捉摸不定的直觉"
-  },
-  {
-    "crystal_name": "换做是你",
-    "english_sentence": "If you were in my shoes, what would you do?",
-    "chinese_meaning": "换你是我，你会怎么做？",
-    "usage_scene": "征求建议时让对方换位思考，比直接问 what should I do 更有共情力。",
-    "expression_function": "请求换位思考",
-    "chunks": ["If you were", "in my shoes", "what would you do"],
-    "difficulty": "简单",
-    "topic_tag": "社交",
-    "reuse_value": 5,
-    "visual_hint": "蓝色镜像晶体，左右两半互相映照，像站在对方的角度看问题"
-  },
-  {
-    "crystal_name": "诚实和粗鲁之间走钢丝",
-    "english_sentence": "You're walking a fine line between being honest and being rude.",
-    "chinese_meaning": "你正在诚实和粗鲁之间走钢丝。",
-    "usage_scene": "提醒对方注意分寸、不要越界，比直接批评更婉转。",
-    "expression_function": "提醒注意分寸",
-    "chunks": ["You're walking a fine line", "between being honest", "and being rude"],
-    "difficulty": "较难",
-    "topic_tag": "观点表达",
-    "reuse_value": 4,
-    "visual_hint": "琥珀色纤细晶体，一条亮线从中间贯穿，两端摇摆不定"
-  },
-  {
-    "crystal_name": "让我再想想",
-    "english_sentence": "Let me sleep on it and get back to you tomorrow.",
-    "chinese_meaning": "让我晚上再想想，明天给你答复。",
-    "usage_scene": "需要时间考虑不愿意当场拍板，专业又自然的拖延术。",
-    "expression_function": "请求考虑时间",
-    "chunks": ["Let me", "sleep on it", "and get back to you", "tomorrow"],
-    "difficulty": "简单",
-    "topic_tag": "职场",
-    "reuse_value": 5,
-    "visual_hint": "冰白色枕形晶体，中间有一颗暗色内核，像沉睡中的思绪"
-  },
-  {
-    "crystal_name": "慢热到认同",
-    "english_sentence": "It took me a while to warm up to the idea, but now I'm all in.",
-    "chinese_meaning": "我花了一段时间才接受这个想法，但现在我完全认同了。",
-    "usage_scene": "表达自己从犹豫到认可的心路历程，开会讨论新方案时用。",
-    "expression_function": "表达态度转变的过程",
-    "chunks": ["It took me a while", "to warm up to the idea", "but now I'm all in"],
-    "difficulty": "中等",
-    "topic_tag": "职场",
-    "reuse_value": 4,
-    "visual_hint": "渐变色晶体，底部暗沉顶部明亮，像态度逐渐升温的过程"
-  },
-  {
-    "crystal_name": "别甩锅",
-    "english_sentence": "Don't pass the buck — this was your call from the start.",
-    "chinese_meaning": "别甩锅，这从一开始就是你的决定。",
-    "usage_scene": "当对方推卸责任时，直接但不失分寸地指出事实。",
-    "expression_function": "指出推卸责任",
-    "chunks": ["Don't pass the buck", "this was your call", "from the start"],
-    "difficulty": "中等",
-    "topic_tag": "职场",
-    "reuse_value": 4,
-    "visual_hint": "双色拼接晶体，一半暗红一半铁灰，接缝处有裂痕，像责任的分界线"
-  },
-  {
-    "crystal_name": "坐立不安",
-    "english_sentence": "I've been on edge all day waiting for their decision.",
-    "chinese_meaning": "我这一整天都坐立不安，等着他们的决定。",
-    "usage_scene": "描述等待重要结果时的焦虑状态，面试等通知、提案等回复。",
-    "expression_function": "表达等待焦虑",
-    "chunks": ["I've been on edge", "all day", "waiting for", "their decision"],
-    "difficulty": "中等",
-    "topic_tag": "情绪",
-    "reuse_value": 3,
-    "visual_hint": "琥珀色震颤晶体，内部光点不稳定地跳动，像坐立不安的心"
-  },
-  {
-    "crystal_name": "原地打转",
-    "english_sentence": "We've been going around in circles for an hour — let's just make a call.",
-    "chinese_meaning": "我们已经原地打转一个小时了，做决定吧。",
-    "usage_scene": "会议陷入无效讨论时，果断打断并推动决策。",
-    "expression_function": "打断无效讨论、推动决策",
-    "chunks": ["We've been going around", "in circles", "for an hour", "let's just make a call"],
-    "difficulty": "较难",
-    "topic_tag": "职场",
-    "reuse_value": 5,
-    "visual_hint": "环形层叠晶体，多层圆环相互嵌套，像不断循环的讨论"
-  },
-  {
-    "crystal_name": "别急着防御",
-    "english_sentence": "There's no need to be defensive — I'm just trying to understand.",
-    "chinese_meaning": "别急着防御，我只是想弄清楚。",
-    "usage_scene": "对方反应过激时，用这句话降低火药味、再推进沟通。",
-    "expression_function": "安抚对方情绪、降低防御",
-    "chunks": ["There's no need", "to be defensive", "I'm just trying", "to understand"],
-    "difficulty": "中等",
-    "topic_tag": "情绪",
-    "reuse_value": 4,
-    "visual_hint": "柔粉色圆润晶体，表面有细密绒毛状纹理，像在轻轻安抚"
-  }
-]
+{
+  "videos": [
+    {
+      "title": "How to Handle Difficult Social Situations with Confidence",
+      "url": "https://youtube.com/watch?v=social_eng_001",
+      "topic": "社交沟通",
+      "sentences": [
+        {
+          "crystal_name": "话赶话聊了三小时",
+          "english_sentence": "One thing led to another, and before I knew it we'd been talking for three hours.",
+          "chinese_meaning": "话赶话，不知不觉就聊了三个小时。",
+          "usage_scene": "描述聊天的自然延续，不知不觉时间就过去了。",
+          "expression_function": "描述自然而然发生的事",
+          "chunks": ["One thing led to another", "and before I knew it", "we'd been talking", "for three hours"],
+          "difficulty": "中等",
+          "topic_tag": "社交",
+          "reuse_value": 4,
+          "visual_hint": "金色螺旋纹晶体，像两股对话不断缠绕延伸"
+        },
+        {
+          "crystal_name": "换做是你",
+          "english_sentence": "If you were in my shoes, what would you do?",
+          "chinese_meaning": "换你是我，你会怎么做？",
+          "usage_scene": "征求建议时让对方换位思考。",
+          "expression_function": "请求换位思考",
+          "chunks": ["If you were", "in my shoes", "what would you do"],
+          "difficulty": "简单",
+          "topic_tag": "社交",
+          "reuse_value": 5,
+          "visual_hint": "蓝色镜像晶体，左右两半互相映照"
+        },
+        {
+          "crystal_name": "顺其自然",
+          "english_sentence": "I just went with the flow and ended up having a great time.",
+          "chinese_meaning": "我就顺其自然，结果玩得很开心。",
+          "usage_scene": "被问到计划时，表达自己没刻意安排但体验不错。",
+          "expression_function": "表达随性的态度",
+          "chunks": ["I just went", "with the flow", "and ended up", "having a great time"],
+          "difficulty": "简单",
+          "topic_tag": "社交",
+          "reuse_value": 4,
+          "visual_hint": "流水曲线纹理的冰蓝色晶体，像自然流淌的对话"
+        }
+      ]
+    },
+    {
+      "title": "Giving Honest Feedback Without Being Rude",
+      "url": "https://youtube.com/watch?v=feedback_eng_042",
+      "topic": "职场表达",
+      "sentences": [
+        {
+          "crystal_name": "说不上哪里不对",
+          "english_sentence": "I can't quite put my finger on it, but something feels off.",
+          "chinese_meaning": "我说不上来，但总觉得哪里不太对。",
+          "usage_scene": "感觉到不对劲但说不清具体是什么。",
+          "expression_function": "表达模糊直觉或疑虑",
+          "chunks": ["I can't quite", "put my finger on it", "but something feels off"],
+          "difficulty": "中等",
+          "topic_tag": "观点表达",
+          "reuse_value": 5,
+          "visual_hint": "半透明紫色晶体，内部有雾气涌动"
+        },
+        {
+          "crystal_name": "诚实和粗鲁之间走钢丝",
+          "english_sentence": "You're walking a fine line between being honest and being rude.",
+          "chinese_meaning": "你正在诚实和粗鲁之间走钢丝。",
+          "usage_scene": "提醒对方注意分寸、不要越界。",
+          "expression_function": "提醒注意分寸",
+          "chunks": ["You're walking a fine line", "between being honest", "and being rude"],
+          "difficulty": "较难",
+          "topic_tag": "观点表达",
+          "reuse_value": 4,
+          "visual_hint": "琥珀色纤细晶体，一条亮线从中间贯穿"
+        },
+        {
+          "crystal_name": "别甩锅",
+          "english_sentence": "Don't pass the buck — this was your call from the start.",
+          "chinese_meaning": "别甩锅，这从一开始就是你的决定。",
+          "usage_scene": "当对方推卸责任时，直接指出事实。",
+          "expression_function": "指出推卸责任",
+          "chunks": ["Don't pass the buck", "this was your call", "from the start"],
+          "difficulty": "中等",
+          "topic_tag": "职场",
+          "reuse_value": 4,
+          "visual_hint": "双色拼接晶体，一半暗红一半铁灰"
+        },
+        {
+          "crystal_name": "对事不对人",
+          "english_sentence": "This isn't personal — I'm just pointing out what needs to change.",
+          "chinese_meaning": "这不是针对你个人，我只是指出需要改进的地方。",
+          "usage_scene": "给反馈前先铺垫，降低对方的防御心。",
+          "expression_function": "降低反馈的对抗性",
+          "chunks": ["This isn't personal", "I'm just pointing out", "what needs to change"],
+          "difficulty": "中等",
+          "topic_tag": "职场",
+          "reuse_value": 5,
+          "visual_hint": "淡蓝色透明晶体，内部有柔和的分隔线"
+        }
+      ]
+    },
+    {
+      "title": "Managing Emotions and Stress at Work",
+      "url": "https://youtube.com/watch?v=workplace_emo_078",
+      "topic": "职场情绪",
+      "sentences": [
+        {
+          "crystal_name": "让我再想想",
+          "english_sentence": "Let me sleep on it and get back to you tomorrow.",
+          "chinese_meaning": "让我晚上再想想，明天给你答复。",
+          "usage_scene": "需要时间考虑不愿意当场拍板。",
+          "expression_function": "请求考虑时间",
+          "chunks": ["Let me", "sleep on it", "and get back to you", "tomorrow"],
+          "difficulty": "简单",
+          "topic_tag": "职场",
+          "reuse_value": 5,
+          "visual_hint": "冰白色枕形晶体，中间有一颗暗色内核"
+        },
+        {
+          "crystal_name": "坐立不安",
+          "english_sentence": "I've been on edge all day waiting for their decision.",
+          "chinese_meaning": "我这一整天都坐立不安，等着他们的决定。",
+          "usage_scene": "描述等待重要结果时的焦虑状态。",
+          "expression_function": "表达等待焦虑",
+          "chunks": ["I've been on edge", "all day", "waiting for", "their decision"],
+          "difficulty": "中等",
+          "topic_tag": "情绪",
+          "reuse_value": 3,
+          "visual_hint": "琥珀色震颤晶体，内部光点不稳定地跳动"
+        },
+        {
+          "crystal_name": "别急着防御",
+          "english_sentence": "There's no need to be defensive — I'm just trying to understand.",
+          "chinese_meaning": "别急着防御，我只是想弄清楚。",
+          "usage_scene": "对方反应过激时，用这句话降低火药味。",
+          "expression_function": "安抚对方情绪、降低防御",
+          "chunks": ["There's no need", "to be defensive", "I'm just trying", "to understand"],
+          "difficulty": "中等",
+          "topic_tag": "情绪",
+          "reuse_value": 4,
+          "visual_hint": "柔粉色圆润晶体，表面有细密绒毛状纹理"
+        }
+      ]
+    }
+  ]
+}
