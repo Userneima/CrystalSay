@@ -2,8 +2,6 @@
 // Current implementation: LocalStorageSync
 // Future implementation: SupabaseSync (swappable without touching store logic)
 
-import type { Crystal } from './index'
-
 export interface ArchiveEntry {
   id: string
   sourceName: string

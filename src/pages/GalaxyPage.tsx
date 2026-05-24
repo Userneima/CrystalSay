@@ -20,16 +20,19 @@ function hashId(id: string, seed: number): number {
   return Math.abs(h) / 2147483647
 }
 
-// Particle burst effect when crystal is mastered
+// Enhanced crystal shatter — flash ring → core glow → fragment burst
 function ShatterEffect({ position, crystal, onDone }: {
   position: [number, number, number]
   crystal: { theme: string; difficulty: string }
   onDone: () => void
 }) {
   const particlesRef = useRef<THREE.Points>(null)
+  const flashRef = useRef<THREE.Mesh>(null)
+  const ringRef = useRef<THREE.Mesh>(null)
   const timerRef = useRef(0)
   const colors = THEME_COLORS[crystal.theme as keyof typeof THEME_COLORS] || THEME_COLORS['blue-green']
-  const fragmentCount = crystal.difficulty === '较难' ? 30 : crystal.difficulty === '中等' ? 20 : 12
+  const fragmentCount = crystal.difficulty === '较难' ? 50 : crystal.difficulty === '中等' ? 35 : 20
+  const glow = new THREE.Color(colors.glow)
 
   const { positions, velocities } = useMemo(() => {
     const pos = new Float32Array(fragmentCount * 3)
@@ -38,48 +41,57 @@ function ShatterEffect({ position, crystal, onDone }: {
       pos[i * 3] = position[0]
       pos[i * 3 + 1] = position[1]
       pos[i * 3 + 2] = position[2]
-      // Random velocity outward in all directions
-      vel[i * 3] = (Math.random() - 0.5) * 0.06
-      vel[i * 3 + 1] = (Math.random() - 0.5) * 0.06 + 0.02  // slightly upward bias
-      vel[i * 3 + 2] = (Math.random() - 0.5) * 0.06
+      const speed = 0.04 + Math.random() * 0.1
+      vel[i * 3] = (Math.random() - 0.5) * speed * 2
+      vel[i * 3 + 1] = Math.random() * speed * 1.5
+      vel[i * 3 + 2] = (Math.random() - 0.5) * speed * 2
     }
     return { positions: pos, velocities: vel }
   }, [fragmentCount, position])
 
   useFrame((_, delta) => {
     timerRef.current += delta
-    if (timerRef.current > 2.0) {
-      onDone()
-      return
+    const t = timerRef.current
+    if (t > 2.5) { onDone(); return }
+
+    if (ringRef.current) {
+      const p = Math.min(1, t / 0.4)
+      ringRef.current.scale.setScalar(0.3 + p * 5)
+      ;(ringRef.current.material as THREE.MeshBasicMaterial).opacity = 0.7 * (1 - p)
+      ringRef.current.visible = t < 0.5
+    }
+    if (flashRef.current) {
+      flashRef.current.visible = t < 0.3
+      ;(flashRef.current.material as THREE.MeshBasicMaterial).opacity = 0.9 * (1 - t / 0.3)
     }
     if (particlesRef.current) {
-      const attr = particlesRef.current.geometry.attributes.position
-      const arr = attr.array as Float32Array
+      const arr = particlesRef.current.geometry.attributes.position.array as Float32Array
       for (let i = 0; i < fragmentCount; i++) {
-        arr[i * 3] += velocities[i * 3] * delta * 20 * (1 + timerRef.current)
-        arr[i * 3 + 1] += velocities[i * 3 + 1] * delta * 20 * (1 + timerRef.current) - timerRef.current * 0.01 // gravity
-        arr[i * 3 + 2] += velocities[i * 3 + 2] * delta * 20 * (1 + timerRef.current)
+        const speed = 1 + t * 3
+        arr[i * 3] += velocities[i * 3] * delta * speed * 12
+        arr[i * 3 + 1] += velocities[i * 3 + 1] * delta * speed * 12 - t * 0.01
+        arr[i * 3 + 2] += velocities[i * 3 + 2] * delta * speed * 12
       }
-      attr.needsUpdate = true
-      // Fade out
-      ;(particlesRef.current.material as THREE.PointsMaterial).opacity = Math.max(0, 1 - timerRef.current * 0.5)
+      particlesRef.current.geometry.attributes.position.needsUpdate = true
+      ;(particlesRef.current.material as THREE.PointsMaterial).opacity = t < 1.2 ? 1 : Math.max(0, 1 - (t - 1.2) * 0.8)
     }
   })
 
   return (
-    <points ref={particlesRef}>
-      <bufferGeometry>
-        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
-      </bufferGeometry>
-      <pointsMaterial
-        size={0.1}
-        color={new THREE.Color(colors.glow)}
-        transparent
-        opacity={1}
-        blending={THREE.AdditiveBlending}
-        depthWrite={false}
-      />
-    </points>
+    <group>
+      <mesh ref={ringRef} position={position}>
+        <torusGeometry args={[0.3, 0.025, 8, 32]} />
+        <meshBasicMaterial color={glow} transparent opacity={0.7} blending={THREE.AdditiveBlending} depthWrite={false} />
+      </mesh>
+      <mesh ref={flashRef} position={position}>
+        <sphereGeometry args={[0.6, 16, 16]} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0.9} blending={THREE.AdditiveBlending} depthWrite={false} />
+      </mesh>
+      <points ref={particlesRef}>
+        <bufferGeometry><bufferAttribute attach="attributes-position" args={[positions, 3]} /></bufferGeometry>
+        <pointsMaterial size={0.15} color={glow} transparent opacity={1} blending={THREE.AdditiveBlending} depthWrite={false} />
+      </points>
+    </group>
   )
 }
 

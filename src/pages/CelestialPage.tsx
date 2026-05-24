@@ -1,4 +1,4 @@
-import { useMemo, useRef, Suspense, useEffect } from 'react'
+import { useMemo, useRef, Suspense, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
@@ -14,7 +14,7 @@ function computeFlowers(mastered: Crystal[], plantedBlooms: { tier: string; them
   const totalEarned = mastered.reduce((sum, c) =>
     sum + (c.difficulty === '较难' ? 10 : c.difficulty === '中等' ? 6 : 3), 0
   )
-  const available = totalEarned - spentFragments
+  const available = Math.max(0, totalEarned - spentFragments)
   const blooms = plantedBlooms.map((b) => ({
     tier: b.tier as FlowerTier,
     theme: b.theme as Theme,
@@ -151,12 +151,23 @@ function Fireflies() {
 }
 
 // ─── Scene ───
-function Scene() {
+function Scene({ focusIndex }: { focusIndex: number | null }) {
   const crystals = useStore((s) => s.crystals)
   const plantedBlooms = useStore((s) => s.plantedBlooms)
   const spentFragments = useStore((s) => s.spentFragments)
   const mastered = useMemo(() => crystals.filter((c) => c.mastered), [crystals])
   const { blooms } = useMemo(() => computeFlowers(mastered, plantedBlooms, spentFragments), [mastered, plantedBlooms, spentFragments])
+  const controlsRef = useRef<any>(null)
+
+  // Animate camera to newly planted flower
+  useFrame(() => {
+    if (focusIndex != null && controlsRef.current && positions[focusIndex]) {
+      const target = new THREE.Vector3(...positions[focusIndex])
+      const current = controlsRef.current.target as THREE.Vector3
+      current.lerp(target, 0.06)
+      controlsRef.current.update()
+    }
+  })
 
   // Generate positions with collision avoidance
   const positions = useMemo(() => {
@@ -184,7 +195,7 @@ function Scene() {
       <FragmentSoil count={blooms.length} />
       <Fireflies />
       {blooms.map((b, i) => <CrystalFlower key={i} bloom={b} index={i} position={positions[i]} />)}
-      <OrbitControls enableDamping dampingFactor={0.08} minDistance={2} maxDistance={15} maxPolarAngle={Math.PI * 0.65} autoRotate autoRotateSpeed={0.15} target={[0, -1.6, 0]} />
+      <OrbitControls ref={controlsRef} enableDamping dampingFactor={0.08} minDistance={2} maxDistance={15} maxPolarAngle={Math.PI * 0.65} autoRotate autoRotateSpeed={0.15} target={[0, -1.6, 0]} />
     </>
   )
 }
@@ -194,8 +205,20 @@ export default function CelestialPage() {
   const crystals = useStore((s) => s.crystals)
   const plantedBlooms = useStore((s) => s.plantedBlooms)
   const spentFragments = useStore((s) => s.spentFragments)
+  const seedGarden = useStore((s) => s.seedGarden)
   const plantFlower = useStore((s) => s.plantFlower)
   const removeFlower = useStore((s) => s.removeFlower)
+  const prevCountRef = useRef(plantedBlooms.length)
+  const [focusIndex, setFocusIndex] = useState<number | null>(null)
+
+  // When a new bloom is planted, focus camera on it
+  useEffect(() => {
+    if (plantedBlooms.length > prevCountRef.current) {
+      setFocusIndex(plantedBlooms.length - 1)
+    }
+    prevCountRef.current = plantedBlooms.length
+  }, [plantedBlooms.length])
+
   const mastered = useMemo(() => crystals.filter((c) => c.mastered), [crystals])
   const { blooms, availableFragments } = useMemo(() => computeFlowers(mastered, plantedBlooms, spentFragments), [mastered, plantedBlooms, spentFragments])
 
@@ -206,14 +229,12 @@ export default function CelestialPage() {
         .then(r => r.json())
         .then(data => {
           if (data.plantedBlooms) {
-            data.plantedBlooms.forEach((b: { tier: string; theme: string }) => {
-              plantFlower(b.tier, b.theme)
-            })
+            seedGarden(data.plantedBlooms, data.spentFragments || 0)
           }
         })
         .catch(() => {})
     }
-  }, [])
+  }, [plantedBlooms.length, seedGarden])
 
   const 晶芽 = blooms.filter((b) => b.tier === '晶芽').length
   const 晶花 = blooms.filter((b) => b.tier === '晶花').length
@@ -253,7 +274,7 @@ export default function CelestialPage() {
         </div>
       ) : (
         <Canvas camera={{ position: [0, 1.5, 7], fov: 45 }} gl={{ antialias: true }} style={{ background: '#02030a' }}>
-          <Suspense fallback={null}><Scene /></Suspense>
+          <Suspense fallback={null}><Scene focusIndex={focusIndex} /></Suspense>
         </Canvas>
       )}
 
@@ -269,26 +290,27 @@ export default function CelestialPage() {
         </div>
       )}
 
-      {mastered.length > 0 && (
+      {(mastered.length > 0 || plantedBlooms.length > 0) && (
         <div className="absolute bottom-20 left-5 right-5 z-10">
           <div className="flex justify-center gap-2">
             {tiers.map((t) => {
               const canAfford = availableFragments >= t.cost
               return (
                 <button key={t.tier} onClick={() => plant(t.tier)} disabled={!canAfford}
-                  className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl border transition-all min-w-[72px] ${canAfford ? 'bg-white/[0.06] border-white/[0.12] text-white/60 hover:bg-white/[0.1] hover:text-white/80 active:scale-95' : 'bg-white/[0.02] border-white/[0.04] text-white/15 cursor-not-allowed'}`}>
-                  <span className="text-[10px] tracking-wider">{t.label}</span>
-                  <span className={`text-[9px] ${canAfford ? 'text-white/30' : 'text-white/10'}`}>{t.cost} 碎片</span>
+                  className={`flex flex-col items-center gap-1.5 px-4 py-2.5 rounded-xl border transition-all min-w-[80px] ${canAfford ? 'bg-white/[0.06] border-white/[0.12] text-white/60 hover:bg-white/[0.1] hover:text-white/80 active:scale-95' : 'bg-white/[0.02] border-white/[0.04] text-white/15 cursor-not-allowed'}`}>
+                  <span className="text-xs tracking-wider">{t.label}</span>
+                  <span className={`text-[11px] ${canAfford ? 'text-white/30' : 'text-white/10'}`}>{t.cost} 碎片</span>
                 </button>
               )
             })}
-            {plantedBlooms.length > 0 && (
-              <button onClick={removeFlower}
-                className="flex items-center px-3 py-2 rounded-xl border border-white/[0.08] text-white/25 text-[10px] hover:text-white/40 hover:border-white/[0.15] transition-all active:scale-95">
-                撤回
-              </button>
-            )}
           </div>
+
+          {plantedBlooms.length > 0 && (
+            <button onClick={removeFlower}
+              className="block mx-auto mt-2 text-white/10 text-[8px] hover:text-white/25 transition-colors">
+              撤回上一次种植
+            </button>
+          )}
         </div>
       )}
 

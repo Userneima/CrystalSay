@@ -37,36 +37,20 @@ function StarfieldBg() {
 }
 
 type Stage = 'chunks' | 'sentence'
-const RETURN_HOME_AFTER_MASTERY_MS = 2200
 
 export default function DetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const crystal = useStore((s) => s.crystals.find((c) => c.id === id))
-  const allCrystals = useStore((s) => s.crystals)
   const recordChunkPass = useStore((s) => s.recordChunkPass)
   const recordSentencePass = useStore((s) => s.recordSentencePass)
   const counts = useStore((s) => s.practiceCounts[id ?? '']) ?? { chunks: 0, sentence: 0 }
   const [stage, setStage] = useState<Stage>('chunks')
-  const [completionPulse, setCompletionPulse] = useState(0)
-  const returnHomeTimerRef = useRef<number | null>(null)
+  const [justPassed, setJustPassed] = useState(false)
 
   useEffect(() => {
     setStage('chunks')
-    setCompletionPulse(0)
-    if (returnHomeTimerRef.current) {
-      window.clearTimeout(returnHomeTimerRef.current)
-      returnHomeTimerRef.current = null
-    }
   }, [id])
-
-  useEffect(() => {
-    return () => {
-      if (returnHomeTimerRef.current) {
-        window.clearTimeout(returnHomeTimerRef.current)
-      }
-    }
-  }, [])
 
   if (!crystal) {
     return (
@@ -85,20 +69,20 @@ export default function DetailPage() {
   }
 
   const handleSentencePassed = () => {
-    const shouldReturnHome = !crystal.mastered && allCrystals.every((c) => c.mastered || c.id === crystal.id)
-    setCompletionPulse((pulse) => pulse + 1)
+    const wasAlreadyMastered = crystal.mastered
     recordSentencePass(crystal.id)
 
-    if (shouldReturnHome) {
-      if (returnHomeTimerRef.current) window.clearTimeout(returnHomeTimerRef.current)
-      returnHomeTimerRef.current = window.setTimeout(() => {
-        navigate('/')
-      }, RETURN_HOME_AFTER_MASTERY_MS)
-    }
-  }
+    setJustPassed(true) // trigger light-up animation
 
-  const nextCrystal = allCrystals.find((c) => !c.mastered && c.id !== id)
-  const allMastered = allCrystals.every((c) => c.mastered || c.id === id)
+    setTimeout(() => {
+      const updated = useStore.getState().crystals.find((c) => c.id === id)
+      if (updated?.mastered && !wasAlreadyMastered) {
+        navigate(`/?shatter=${id}`)
+      } else {
+        navigate('/')
+      }
+    }, 600)
+  }
 
   return (
     <div className="w-full h-full overflow-y-auto overflow-x-hidden relative bg-[#02030a]">
@@ -121,7 +105,7 @@ export default function DetailPage() {
         </div>
 
         {/* Crystal hero */}
-        <CrystalHero crystal={crystal} animateBright={crystal.mastered} completionPulse={completionPulse} />
+        <CrystalHero crystal={crystal} animateBright={crystal.mastered || justPassed} />
 
         {/* Stage content */}
         <AnimatePresence mode="wait">
@@ -140,24 +124,15 @@ export default function DetailPage() {
         </AnimatePresence>
 
         {/* Practice progress */}
-        {(counts.chunks > 0 || counts.sentence > 0) && !crystal.mastered && (
+        {!crystal.mastered && (
           <p className="text-center text-white/15 text-[10px] tracking-wider">
-            进度 {counts.chunks + counts.sentence}/2 · 完成语块+整句各一次自动掌握
+            第 {Math.min(counts.sentence + 1, 3)} 轮 · 已学 {counts.sentence}/3 轮自动掌握
           </p>
         )}
 
         {/* Mastered */}
         {crystal.mastered && (
-          <div className="flex flex-col items-center gap-3">
-            <p className="text-white/20 text-xs tracking-wider">— 已掌握 —</p>
-            {nextCrystal && !allMastered && (
-              <button onClick={() => navigate(`/crystal/${nextCrystal.id}`)}
-                className="px-6 py-3 rounded-full text-sm font-semibold tracking-wider text-white transition-all active:scale-95 min-h-[48px]"
-                style={{ background: 'linear-gradient(135deg, rgba(168,120,232,0.6), rgba(124,92,231,0.6))', border: '1px solid rgba(168,120,232,0.3)' }}>
-                下一个晶体 →
-              </button>
-            )}
-          </div>
+          <p className="text-center text-white/20 text-xs tracking-wider">— 已掌握，返回星系查看 —</p>
         )}
       </div>
     </div>

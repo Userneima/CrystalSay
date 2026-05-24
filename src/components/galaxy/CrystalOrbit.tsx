@@ -207,7 +207,9 @@ export default function CrystalOrbit({ crystal, position, onClick }: CrystalOrbi
   // --- visual mappings ---
   const reuseValue = crystal.reuseValue
   const difficulty = crystal.difficulty
-  const brightness = crystal.mastered ? 1.0 : 0.3
+  const practicedToday = crystal.practicedAt &&
+    Date.now() - new Date(crystal.practicedAt).getTime() < 24 * 60 * 60 * 1000
+  const brightness = crystal.mastered || practicedToday ? 1.0 : 0.3
   const coreSize = 0.22 + reuseValue * 0.08
 
   // difficulty → geometry detail

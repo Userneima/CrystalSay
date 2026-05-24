@@ -52,6 +52,7 @@ interface CrystalState {
   shatteringIds: string[]
   plantedBlooms: { tier: string; theme: string }[]
   spentFragments: number
+  seedGarden: (blooms: { tier: string; theme: string }[], spentFragments: number) => void
   setCrystals: (crystals: Crystal[]) => void
   addCrystals: (newCrystals: Crystal[]) => void
   markMastered: (id: string) => void
@@ -66,9 +67,19 @@ interface CrystalState {
   clearArchive: () => void
 }
 
+type PersistedProgress = Record<string, Pick<Crystal, 'mastered' | 'practicedAt'>>
+type PersistedCrystalState = Partial<Pick<
+  CrystalState,
+  'archive' | 'practiceCounts' | 'plantedBlooms' | 'spentFragments'
+>> & {
+  _progress?: PersistedProgress
+  progress?: PersistedProgress
+}
+
 let archiveCounter = 0
 
 const FRAGMENT_COST_MAP: Record<string, number> = { 晶王: 60, 晶簇: 35, 晶花: 15, 晶芽: 5 }
+const REQUIRED_SENTENCE_PASSES = 3
 
 export const useStore = create<CrystalState>()(
   persist(
@@ -82,8 +93,14 @@ export const useStore = create<CrystalState>()(
       plantedBlooms: [],
       spentFragments: 0,
 
+      seedGarden: (blooms, spentFragments) =>
+        set((state) => {
+          if (state.plantedBlooms.length > 0) return state
+          return { plantedBlooms: blooms, spentFragments }
+        }),
+
       setCrystals: (crystals) => {
-        const stored = (get() as any)._progress || {}
+        const stored = (get() as CrystalState & { _progress?: PersistedProgress })._progress || {}
         const merged = crystals.map((c) => {
           const p = stored[c.id]
           if (p) return { ...c, mastered: p.mastered, practicedAt: p.practicedAt }
@@ -121,13 +138,8 @@ export const useStore = create<CrystalState>()(
           const counts = { ...state.practiceCounts }
           const cur = counts[id] || { chunks: 0, sentence: 0 }
           counts[id] = { ...cur, chunks: cur.chunks + 1 }
-          const shouldMaster = counts[id].chunks + counts[id].sentence >= 2
           return {
             practiceCounts: counts,
-            crystals: shouldMaster
-              ? state.crystals.map((c) => (c.id === id ? { ...c, mastered: true, practicedAt: new Date().toISOString() } : c))
-              : state.crystals,
-            shatteringIds: shouldMaster ? [...state.shatteringIds, id] : state.shatteringIds,
           }
         }),
 
@@ -136,13 +148,15 @@ export const useStore = create<CrystalState>()(
           const counts = { ...state.practiceCounts }
           const cur = counts[id] || { chunks: 0, sentence: 0 }
           counts[id] = { ...cur, sentence: cur.sentence + 1 }
+          const practicedAt = new Date().toISOString()
+          const shouldMaster = counts[id].sentence >= REQUIRED_SENTENCE_PASSES
           const wasMastered = state.crystals.some((c) => c.id === id && c.mastered)
           return {
             practiceCounts: counts,
             crystals: state.crystals.map((c) =>
-              c.id === id ? { ...c, mastered: true, practicedAt: new Date().toISOString() } : c,
+              c.id === id ? { ...c, mastered: shouldMaster || c.mastered, practicedAt } : c,
             ),
-            shatteringIds: wasMastered ? state.shatteringIds : [...state.shatteringIds, id],
+            shatteringIds: shouldMaster && !wasMastered ? [...state.shatteringIds, id] : state.shatteringIds,
           }
         }),
 
@@ -188,6 +202,17 @@ export const useStore = create<CrystalState>()(
     }),
     {
       name: 'crystalsay-storage',
+      version: 2,
+      migrate: (persistedState: unknown) => {
+        const old = persistedState as PersistedCrystalState | undefined
+        return {
+          ...(old ?? {}),
+          _progress: old?._progress ?? old?.progress ?? {},
+          practiceCounts: old?.practiceCounts ?? {},
+          plantedBlooms: old?.plantedBlooms ?? [],
+          spentFragments: old?.spentFragments ?? 0,
+        }
+      },
       onRehydrateStorage: () => {
         return (state) => {
           if (state && state.archive) {
@@ -206,6 +231,8 @@ export const useStore = create<CrystalState>()(
         ),
         archive: state.archive,
         practiceCounts: state.practiceCounts,
+        plantedBlooms: state.plantedBlooms,
+        spentFragments: state.spentFragments,
       }),
     },
   ),
