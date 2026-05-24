@@ -1,4 +1,4 @@
-import { useState, useMemo, Suspense, useCallback } from 'react'
+import { useState, useMemo, Suspense, useCallback, useEffect, useRef } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { useNavigate } from 'react-router-dom'
 import * as THREE from 'three'
@@ -9,6 +9,7 @@ import CameraController from '../components/galaxy/CameraController'
 import CrystalOrbit from '../components/galaxy/CrystalOrbit'
 import ClusterTagBar from '../components/galaxy/ClusterTagBar'
 import ClusterBeacon from '../components/galaxy/ClusterBeacon'
+import { THEME_COLORS } from '../utils/themeMapping'
 
 // Deterministic hash for stable positions
 function hashId(id: string, seed: number): number {
@@ -19,11 +20,76 @@ function hashId(id: string, seed: number): number {
   return Math.abs(h) / 2147483647
 }
 
+// Particle burst effect when crystal is mastered
+function ShatterEffect({ position, crystal, onDone }: {
+  position: [number, number, number]
+  crystal: { theme: string; difficulty: string }
+  onDone: () => void
+}) {
+  const particlesRef = useRef<THREE.Points>(null)
+  const timerRef = useRef(0)
+  const colors = THEME_COLORS[crystal.theme as keyof typeof THEME_COLORS] || THEME_COLORS['blue-green']
+  const fragmentCount = crystal.difficulty === '较难' ? 30 : crystal.difficulty === '中等' ? 20 : 12
+
+  const { positions, velocities } = useMemo(() => {
+    const pos = new Float32Array(fragmentCount * 3)
+    const vel = new Float32Array(fragmentCount * 3)
+    for (let i = 0; i < fragmentCount; i++) {
+      pos[i * 3] = position[0]
+      pos[i * 3 + 1] = position[1]
+      pos[i * 3 + 2] = position[2]
+      // Random velocity outward in all directions
+      vel[i * 3] = (Math.random() - 0.5) * 0.06
+      vel[i * 3 + 1] = (Math.random() - 0.5) * 0.06 + 0.02  // slightly upward bias
+      vel[i * 3 + 2] = (Math.random() - 0.5) * 0.06
+    }
+    return { positions: pos, velocities: vel }
+  }, [fragmentCount, position])
+
+  useFrame((_, delta) => {
+    timerRef.current += delta
+    if (timerRef.current > 2.0) {
+      onDone()
+      return
+    }
+    if (particlesRef.current) {
+      const attr = particlesRef.current.geometry.attributes.position
+      const arr = attr.array as Float32Array
+      for (let i = 0; i < fragmentCount; i++) {
+        arr[i * 3] += velocities[i * 3] * delta * 20 * (1 + timerRef.current)
+        arr[i * 3 + 1] += velocities[i * 3 + 1] * delta * 20 * (1 + timerRef.current) - timerRef.current * 0.01 // gravity
+        arr[i * 3 + 2] += velocities[i * 3 + 2] * delta * 20 * (1 + timerRef.current)
+      }
+      attr.needsUpdate = true
+      // Fade out
+      ;(particlesRef.current.material as THREE.PointsMaterial).opacity = Math.max(0, 1 - timerRef.current * 0.5)
+    }
+  })
+
+  return (
+    <points ref={particlesRef}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+      </bufferGeometry>
+      <pointsMaterial
+        size={0.1}
+        color={new THREE.Color(colors.glow)}
+        transparent
+        opacity={1}
+        blending={THREE.AdditiveBlending}
+        depthWrite={false}
+      />
+    </points>
+  )
+}
+
 function CrystalPositions({ onCrystalClick }: {
   onCrystalClick: (id: string) => void
 }) {
   const crystals = useStore((s) => s.crystals)
   const clusters = useStore((s) => s.clusters)
+  const shatteringIds = useStore((s) => s.shatteringIds)
+  const dismissShatter = useStore((s) => s.dismissShatter)
 
   const crystalPositions = useMemo(() => {
     const map = new Map<string, [number, number, number]>()
@@ -35,7 +101,6 @@ function CrystalPositions({ onCrystalClick }: {
         const angleOffset = hashId(id, 7) * Math.PI * 2
         const angle = (i / count) * Math.PI * 2 + angleOffset * 0.1
         const radius = count === 1 ? 0 : spread * (0.6 + hashId(id, 13) * 0.8)
-
         map.set(id, [
           cx + Math.cos(angle) * radius,
           cy + (hashId(id, 3) - 0.5) * 1.5,
@@ -52,12 +117,16 @@ function CrystalPositions({ onCrystalClick }: {
         const pos = crystalPositions.get(crystal.id)
         if (!pos) return null
         return (
-          <CrystalOrbit
-            key={crystal.id}
-            crystal={crystal}
-            position={pos}
-            onClick={() => onCrystalClick(crystal.id)}
-          />
+          <group key={crystal.id}>
+            <CrystalOrbit
+              crystal={crystal}
+              position={pos}
+              onClick={() => onCrystalClick(crystal.id)}
+            />
+            {shatteringIds.includes(crystal.id) && (
+              <ShatterEffect position={pos} crystal={crystal} onDone={() => dismissShatter(crystal.id)} />
+            )}
+          </group>
         )
       })}
     </>
@@ -181,14 +250,15 @@ export default function GalaxyPage() {
         <div className="flex items-end justify-between">
           {/* left: history */}
           <button
-            onClick={() => navigate('/history')}
+            onClick={() => navigate('/celestial')}
             className="flex items-center gap-1.5 text-white/20 hover:text-white/40 active:scale-95 transition-all"
           >
-            <svg viewBox="0 0 16 16" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="8" cy="8" r="6.5" />
-              <path d="M8 4.5v3.5l2 2" />
+            <svg viewBox="0 0 16 16" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+              <circle cx="8" cy="4" r="1.5" />
+              <path d="M8 5.5v7" />
+              <path d="M5 10c1-2 2-3 3-3s2 1 3 3" />
             </svg>
-            <span className="text-xs sm:text-sm">历史</span>
+            <span className="text-xs sm:text-sm">沉淀</span>
           </button>
           {/* right: update */}
           <button

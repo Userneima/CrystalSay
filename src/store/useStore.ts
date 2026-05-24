@@ -49,10 +49,15 @@ interface CrystalState {
   loaded: boolean
   archive: ArchiveBatch[]
   practiceCounts: Record<string, { chunks: number; sentence: number }>
+  shatteringIds: string[]
+  plantedBlooms: { tier: string; theme: string }[]
+  spentFragments: number
   setCrystals: (crystals: Crystal[]) => void
   addCrystals: (newCrystals: Crystal[]) => void
   markMastered: (id: string) => void
   markPracticed: (id: string) => void
+  plantFlower: (tier: string, theme: string) => void
+  dismissShatter: (id: string) => void
   recordChunkPass: (id: string) => void
   recordSentencePass: (id: string) => void
   addToArchive: (sourceName: string, sentences: RawCandidate[]) => void
@@ -62,6 +67,8 @@ interface CrystalState {
 
 let archiveCounter = 0
 
+const FRAGMENT_COST_MAP: Record<string, number> = { 晶王: 60, 晶簇: 35, 晶花: 15, 晶芽: 5 }
+
 export const useStore = create<CrystalState>()(
   persist(
     (set, get) => ({
@@ -70,6 +77,9 @@ export const useStore = create<CrystalState>()(
       loaded: false,
       archive: [],
       practiceCounts: {},
+      shatteringIds: [],
+      plantedBlooms: [],
+      spentFragments: 0,
 
       setCrystals: (crystals) => {
         const stored = (get() as any)._progress || {}
@@ -116,6 +126,7 @@ export const useStore = create<CrystalState>()(
             crystals: shouldMaster
               ? state.crystals.map((c) => (c.id === id ? { ...c, mastered: true, practicedAt: new Date().toISOString() } : c))
               : state.crystals,
+            shatteringIds: shouldMaster ? [...state.shatteringIds, id] : state.shatteringIds,
           }
         }),
 
@@ -130,8 +141,20 @@ export const useStore = create<CrystalState>()(
             crystals: shouldMaster
               ? state.crystals.map((c) => (c.id === id ? { ...c, mastered: true, practicedAt: new Date().toISOString() } : c))
               : state.crystals,
+            shatteringIds: shouldMaster ? [...state.shatteringIds, id] : state.shatteringIds,
           }
         }),
+
+      dismissShatter: (id) =>
+        set((state) => ({
+          shatteringIds: state.shatteringIds.filter((sid) => sid !== id),
+        })),
+
+      plantFlower: (tier, theme) =>
+        set((state) => ({
+          plantedBlooms: [...state.plantedBlooms, { tier, theme }],
+          spentFragments: state.spentFragments + (FRAGMENT_COST_MAP[tier] || 0),
+        })),
 
       addToArchive: (sourceName, sentences) => {
         if (sentences.length === 0) return
@@ -172,6 +195,8 @@ export const useStore = create<CrystalState>()(
         ),
         archive: state.archive,
         practiceCounts: state.practiceCounts,
+        plantedBlooms: state.plantedBlooms,
+        spentFragments: state.spentFragments,
       }),
     },
   ),
