@@ -57,6 +57,7 @@ interface CrystalState {
   markMastered: (id: string) => void
   markPracticed: (id: string) => void
   plantFlower: (tier: string, theme: string) => void
+  removeFlower: () => void
   dismissShatter: (id: string) => void
   recordChunkPass: (id: string) => void
   recordSentencePass: (id: string) => void
@@ -155,6 +156,16 @@ export const useStore = create<CrystalState>()(
           plantedBlooms: [...state.plantedBlooms, { tier, theme }],
           spentFragments: state.spentFragments + (FRAGMENT_COST_MAP[tier] || 0),
         })),
+
+      removeFlower: () =>
+        set((state) => {
+          if (state.plantedBlooms.length === 0) return state
+          const last = state.plantedBlooms[state.plantedBlooms.length - 1]
+          return {
+            plantedBlooms: state.plantedBlooms.slice(0, -1),
+            spentFragments: state.spentFragments - (FRAGMENT_COST_MAP[last.tier] || 0),
+          }
+        }),
 
       addToArchive: (sourceName, sentences) => {
         if (sentences.length === 0) return

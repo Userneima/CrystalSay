@@ -123,16 +123,11 @@ export default function DetailPage() {
         {crystal.mastered && (
           <div className="flex flex-col items-center gap-3">
             <p className="text-white/20 text-xs tracking-wider">— 已掌握 —</p>
-            {nextCrystal && !allMastered ? (
+            {nextCrystal && !allMastered && (
               <button onClick={() => navigate(`/crystal/${nextCrystal.id}`)}
                 className="px-6 py-3 rounded-full text-sm font-semibold tracking-wider text-white transition-all active:scale-95 min-h-[48px]"
                 style={{ background: 'linear-gradient(135deg, rgba(168,120,232,0.6), rgba(124,92,231,0.6))', border: '1px solid rgba(168,120,232,0.3)' }}>
                 下一个晶体 →
-              </button>
-            ) : (
-              <button onClick={() => navigate('/')}
-                className="px-6 py-3 rounded-full text-sm font-semibold tracking-wider text-white/50 border border-white/[0.08] transition-all active:scale-95 min-h-[48px]">
-                返回星系
               </button>
             )}
           </div>

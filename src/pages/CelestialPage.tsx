@@ -1,4 +1,4 @@
-import { useMemo, useRef, Suspense } from 'react'
+import { useMemo, useRef, Suspense, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
@@ -50,9 +50,10 @@ function Shard({ pos, rot, color, size }: {
 }
 
 // ─── Crystal Flower ───
-function CrystalFlower({ bloom, index }: {
+function CrystalFlower({ bloom, index, position }: {
   bloom: { tier: FlowerTier; theme: Theme; scale: number; layers: number }
   index: number
+  position: [number, number, number]
 }) {
   const groupRef = useRef<THREE.Group>(null)
   const { theme, scale, layers } = bloom
@@ -61,13 +62,6 @@ function CrystalFlower({ bloom, index }: {
   const glow = useMemo(() => new THREE.Color(colors.glow), [colors.glow])
   const n = 6 + layers * 2
   const form = index % 3
-
-  // Random scatter position (stable across renders via hash)
-  const pos = useMemo((): [number, number, number] => {
-    const angle = hashId(`${index}-p`, 1) * Math.PI * 2
-    const radius = 0.4 + hashId(`${index}-p`, 2) * 4.5
-    return [Math.cos(angle) * radius, -2.15, Math.sin(angle) * radius]
-  }, [index])
 
   const targets = useMemo((): [number, number, number][] => {
     const t: [number, number, number][] = []
@@ -98,13 +92,13 @@ function CrystalFlower({ bloom, index }: {
   useFrame((_, delta) => {
     if (groupRef.current) {
       groupRef.current.rotation.y += delta * 0.06
-      const sway = Math.sin(Date.now() * 0.0008 + pos[0]) * 0.012
-      groupRef.current.position.y = pos[1] + sway
+      const sway = Math.sin(Date.now() * 0.0008 + position[0]) * 0.012
+      groupRef.current.position.y = position[1] + sway
     }
   })
 
   return (
-    <group ref={groupRef} position={pos}>
+    <group ref={groupRef} position={position}>
       <mesh position={[0, -0.06, 0]}>
         <cylinderGeometry args={[0.01, 0.015, 0.5 * scale, 6]} />
         <meshBasicMaterial color={primary} transparent opacity={0.3} depthWrite={false} />
@@ -169,6 +163,24 @@ function Scene() {
   const mastered = useMemo(() => crystals.filter((c) => c.mastered), [crystals])
   const { blooms } = useMemo(() => computeFlowers(mastered, plantedBlooms, spentFragments), [mastered, plantedBlooms, spentFragments])
 
+  // Generate positions with collision avoidance
+  const positions = useMemo(() => {
+    const taken: { x: number; z: number }[] = []
+    const minDist = 0.7
+    return blooms.map((_, i) => {
+      let px = 0, pz = 0, att = 0
+      do {
+        const angle = Math.random() * Math.PI * 2
+        const radius = 0.3 + Math.random() * 4.5
+        px = Math.cos(angle) * radius
+        pz = Math.sin(angle) * radius
+        att++
+      } while (att < 30 && taken.some((t) => Math.hypot(px - t.x, pz - t.z) < minDist))
+      taken.push({ x: px, z: pz })
+      return [px, -2.15, pz] as [number, number, number]
+    })
+  }, [blooms])
+
   return (
     <>
       <ambientLight intensity={0.5} />
@@ -176,7 +188,7 @@ function Scene() {
       <pointLight position={[-5, -2, -5]} intensity={0.3} color="#8844aa" />
       <FragmentSoil count={blooms.length} />
       <Fireflies />
-      {blooms.map((b, i) => <CrystalFlower key={i} bloom={b} index={i} />)}
+      {blooms.map((b, i) => <CrystalFlower key={i} bloom={b} index={i} position={positions[i]} />)}
       <OrbitControls enableDamping dampingFactor={0.08} minDistance={2} maxDistance={15} maxPolarAngle={Math.PI * 0.65} autoRotate autoRotateSpeed={0.15} target={[0, -1.6, 0]} />
     </>
   )
@@ -188,8 +200,28 @@ export default function CelestialPage() {
   const plantedBlooms = useStore((s) => s.plantedBlooms)
   const spentFragments = useStore((s) => s.spentFragments)
   const plantFlower = useStore((s) => s.plantFlower)
+  const removeFlower = useStore((s) => s.removeFlower)
   const mastered = useMemo(() => crystals.filter((c) => c.mastered), [crystals])
   const { blooms, availableFragments, totalEarned } = useMemo(() => computeFlowers(mastered, plantedBlooms, spentFragments), [mastered, plantedBlooms, spentFragments])
+
+  // Demo: clear old state and seed 1000 fragments
+  useEffect(() => {
+    const key = 'crystalsay-storage'
+    const raw = localStorage.getItem(key)
+    if (raw) {
+      try {
+        const data = JSON.parse(raw)
+        // Reset spent fragments and planted blooms for demo
+        if (data.state?.spentFragments > 0 || (data.state?.plantedBlooms?.length || 0) === 0) {
+          data.state.spentFragments = -1000
+          data.state.plantedBlooms = (data.state.plantedBlooms || []).slice(0, 0)
+          localStorage.setItem(key, JSON.stringify(data))
+        }
+      } catch { /* ignore */ }
+    }
+    // Reload to pick up changes
+    if (spentFragments >= 0) window.location.reload()
+  }, [])
 
   const 晶芽 = blooms.filter((b) => b.tier === '晶芽').length
   const 晶花 = blooms.filter((b) => b.tier === '晶花').length
@@ -205,7 +237,9 @@ export default function CelestialPage() {
 
   const plant = (tier: FlowerTier) => {
     if (availableFragments < FRAGMENT_COST[tier]) return
-    plantFlower(tier, mastered[0]?.theme || 'blue-green')
+    const themes: Theme[] = ['amethyst', 'blue-green', 'amber', 'ice-white']
+    const randomTheme = themes[Math.floor(Math.random() * themes.length)]
+    plantFlower(tier, randomTheme)
   }
 
   return (
@@ -239,7 +273,7 @@ export default function CelestialPage() {
       {plantedBlooms.length > 0 && (
         <div className="absolute top-20 right-5 z-10 text-right">
           <p className="text-white/30 text-xs tracking-wider">{晶芽} 晶芽 · {晶花} 晶花 · {晶簇} 晶簇{晶王 > 0 && ` · ${晶王} 晶王`}</p>
-          <p className="text-white/20 text-[11px] mt-0.5">{availableFragments} 碎片可用 · 累计 {totalEarned}</p>
+          <p className="text-white/20 text-[11px] mt-0.5">🪙 {availableFragments} 碎片可用</p>
         </div>
       )}
 
@@ -256,6 +290,12 @@ export default function CelestialPage() {
                 </button>
               )
             })}
+            {plantedBlooms.length > 0 && (
+              <button onClick={removeFlower}
+                className="flex items-center px-3 py-2 rounded-xl border border-white/[0.08] text-white/25 text-[10px] hover:text-white/40 hover:border-white/[0.15] transition-all active:scale-95">
+                撤回
+              </button>
+            )}
           </div>
         </div>
       )}

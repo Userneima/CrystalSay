@@ -1,4 +1,4 @@
-import { useRef, useMemo } from 'react'
+import { useRef, useMemo, useEffect } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { THEME_COLORS } from '../../utils/themeMapping'
@@ -115,6 +115,12 @@ function CrystalMesh({ crystal, animateBright }: { crystal: Crystal; animateBrig
   const targetBrightness = animateBright ? 1.0 : (crystal.mastered ? 1.0 : 0.35)
   const bRef = useRef(crystal.mastered ? 1.0 : 0.35)
 
+  const prevAnimate = useRef(animateBright)
+  useEffect(() => {
+    if (animateBright && !prevAnimate.current) bRef.current = 0.35
+    prevAnimate.current = animateBright
+  }, [animateBright])
+
   const geometryDetail = difficulty === '简单' ? 0 : difficulty === '中等' ? 0 : 1
   const wireframeDetail = difficulty === '简单' ? 0 : difficulty === '中等' ? 1 : 2
   const shardDefs = SHARD_PRESETS[difficulty] ?? SHARD_PRESETS['中等']
@@ -134,7 +140,7 @@ function CrystalMesh({ crystal, animateBright }: { crystal: Crystal; animateBrig
       groupRef.current.rotation.z += delta * 0.15
     }
     // Smooth brightness lerp
-    bRef.current += (targetBrightness - bRef.current) * Math.min(delta * 3, 1)
+    bRef.current += (targetBrightness - bRef.current) * Math.min(delta * 6, 1)
     const bv = bRef.current
 
     // Directly update material properties for smooth animation
