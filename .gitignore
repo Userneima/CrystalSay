@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Project-specific
+UI 参考/
+视频文件/
+*.json.bak
