@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store/useStore'
 import { getTheme, THEME_COLORS } from '../utils/themeMapping'
 import type { Crystal } from '../types'
+import videoCrystalsUrl from '../../video-crystals.json?url'
 
 interface RawCrystal {
   crystal_name: string
@@ -16,6 +17,7 @@ interface RawCrystal {
   topic_tag: string
   reuse_value: number
   visual_hint: string
+  source_link?: string
 }
 
 interface VideoSource {
@@ -45,6 +47,25 @@ function rawToCrystal(raw: RawCrystal, index: number): Crystal {
   }
 }
 
+function groupVideoCrystals(items: RawCrystal[]): VideoSource[] {
+  const groups = new Map<string, RawCrystal[]>()
+  items.forEach((item) => {
+    const source = item.source_link || '未知来源'
+    if (!groups.has(source)) groups.set(source, [])
+    groups.get(source)!.push(item)
+  })
+
+  return Array.from(groups.entries()).map(([url, sentences], index) => {
+    const topic = sentences[0]?.topic_tag || '视频表达'
+    return {
+      title: `抖音视频 ${index + 1} · ${topic}`,
+      url,
+      topic,
+      sentences,
+    }
+  })
+}
+
 export default function UpdatePage() {
   const navigate = useNavigate()
   const addCrystals = useStore((s) => s.addCrystals)
@@ -60,14 +81,15 @@ export default function UpdatePage() {
   const [expandedSource, setExpandedSource] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch('/data/new-crystals.json')
+    fetch(videoCrystalsUrl)
       .then((r) => r.json())
-      .then((data: { videos: VideoSource[] }) => {
+      .then((data: RawCrystal[]) => {
+        const videos = groupVideoCrystals(data)
         const allCandidates: Crystal[] = []
         const index = new Map<string, { raw: RawCrystal; sourceName: string }>()
         let idCounter = 0
 
-        data.videos.forEach((video) => {
+        videos.forEach((video) => {
           video.sentences.forEach((raw) => {
             if (crystals.some((existing) => existing.english === raw.english_sentence)) return
             const c = rawToCrystal(raw, idCounter++)
@@ -76,7 +98,7 @@ export default function UpdatePage() {
           })
         })
 
-        setVideoSources(data.videos.filter((v) =>
+        setVideoSources(videos.filter((v) =>
           v.sentences.some((s) => !crystals.some((e) => e.english === s.english_sentence))
         ))
         setCandidates(allCandidates)

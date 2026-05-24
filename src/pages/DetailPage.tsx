@@ -37,6 +37,7 @@ function StarfieldBg() {
 }
 
 type Stage = 'chunks' | 'sentence'
+const RETURN_HOME_AFTER_MASTERY_MS = 2200
 
 export default function DetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -48,11 +49,24 @@ export default function DetailPage() {
   const counts = useStore((s) => s.practiceCounts[id ?? '']) ?? { chunks: 0, sentence: 0 }
   const [stage, setStage] = useState<Stage>('chunks')
   const [completionPulse, setCompletionPulse] = useState(0)
+  const returnHomeTimerRef = useRef<number | null>(null)
 
   useEffect(() => {
     setStage('chunks')
     setCompletionPulse(0)
+    if (returnHomeTimerRef.current) {
+      window.clearTimeout(returnHomeTimerRef.current)
+      returnHomeTimerRef.current = null
+    }
   }, [id])
+
+  useEffect(() => {
+    return () => {
+      if (returnHomeTimerRef.current) {
+        window.clearTimeout(returnHomeTimerRef.current)
+      }
+    }
+  }, [])
 
   if (!crystal) {
     return (
@@ -71,8 +85,16 @@ export default function DetailPage() {
   }
 
   const handleSentencePassed = () => {
+    const shouldReturnHome = !crystal.mastered && allCrystals.every((c) => c.mastered || c.id === crystal.id)
     setCompletionPulse((pulse) => pulse + 1)
     recordSentencePass(crystal.id)
+
+    if (shouldReturnHome) {
+      if (returnHomeTimerRef.current) window.clearTimeout(returnHomeTimerRef.current)
+      returnHomeTimerRef.current = window.setTimeout(() => {
+        navigate('/')
+      }, RETURN_HOME_AFTER_MASTERY_MS)
+    }
   }
 
   const nextCrystal = allCrystals.find((c) => !c.mastered && c.id !== id)
