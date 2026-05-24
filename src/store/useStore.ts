@@ -206,8 +206,6 @@ export const useStore = create<CrystalState>()(
         ),
         archive: state.archive,
         practiceCounts: state.practiceCounts,
-        plantedBlooms: state.plantedBlooms,
-        spentFragments: state.spentFragments,
       }),
     },
   ),

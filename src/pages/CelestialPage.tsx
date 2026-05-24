@@ -199,23 +199,20 @@ export default function CelestialPage() {
   const mastered = useMemo(() => crystals.filter((c) => c.mastered), [crystals])
   const { blooms, availableFragments } = useMemo(() => computeFlowers(mastered, plantedBlooms, spentFragments), [mastered, plantedBlooms, spentFragments])
 
-  // Demo: clear old state and seed 1000 fragments
+  // Load garden from file on first visit
   useEffect(() => {
-    const key = 'crystalsay-storage'
-    const raw = localStorage.getItem(key)
-    if (raw) {
-      try {
-        const data = JSON.parse(raw)
-        // Reset spent fragments and planted blooms for demo
-        if (data.state?.spentFragments > 0 || (data.state?.plantedBlooms?.length || 0) === 0) {
-          data.state.spentFragments = -1000
-          data.state.plantedBlooms = (data.state.plantedBlooms || []).slice(0, 0)
-          localStorage.setItem(key, JSON.stringify(data))
-        }
-      } catch { /* ignore */ }
+    if (plantedBlooms.length === 0) {
+      fetch('/data/garden.json')
+        .then(r => r.json())
+        .then(data => {
+          if (data.plantedBlooms) {
+            data.plantedBlooms.forEach((b: { tier: string; theme: string }) => {
+              plantFlower(b.tier, b.theme)
+            })
+          }
+        })
+        .catch(() => {})
     }
-    // Reload to pick up changes
-    if (spentFragments >= 0) window.location.reload()
   }, [])
 
   const 晶芽 = blooms.filter((b) => b.tier === '晶芽').length

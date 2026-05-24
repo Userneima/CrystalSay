@@ -1,0 +1,15 @@
+{
+  "plantedBlooms": [
+    { "tier": "晶芽", "theme": "blue-green" },
+    { "tier": "晶芽", "theme": "amethyst" },
+    { "tier": "晶芽", "theme": "amber" },
+    { "tier": "晶芽", "theme": "ice-white" },
+    { "tier": "晶花", "theme": "amethyst" },
+    { "tier": "晶花", "theme": "blue-green" },
+    { "tier": "晶花", "theme": "amber" },
+    { "tier": "晶簇", "theme": "amethyst" },
+    { "tier": "晶簇", "theme": "blue-green" },
+    { "tier": "晶王", "theme": "amethyst" }
+  ],
+  "spentFragments": 0
+}
