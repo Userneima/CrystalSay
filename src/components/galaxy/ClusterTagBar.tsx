@@ -28,7 +28,7 @@ export default function ClusterTagBar({ clusters, activeClusterId, onClusterClic
         WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
       }}
     >
-      <div className="flex gap-2 px-8 py-1 min-w-min">
+      <div className="flex gap-1.5 px-8 py-1 min-w-min">
         {clusters.map((cluster) => {
           const isActive = cluster.id === activeClusterId
           return (
@@ -36,15 +36,15 @@ export default function ClusterTagBar({ clusters, activeClusterId, onClusterClic
               key={cluster.id}
               data-cluster-id={cluster.id}
               onClick={() => onClusterClick(cluster)}
-              className={`shrink-0 flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] tracking-wide font-medium transition-all duration-300 ${
+              className={`shrink-0 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] tracking-normal font-medium backdrop-blur-md transition-all duration-300 ${
                 isActive
-                  ? 'bg-white/[0.12] border-white/30 text-white/90 shadow-[0_0_12px_rgba(168,85,247,0.25)]'
-                  : 'bg-white/[0.05] border-white/[0.08] text-white/50 hover:bg-white/[0.08] hover:text-white/70'
+                  ? 'bg-white/[0.10] border-white/25 text-white/95 shadow-[0_0_14px_rgba(168,85,247,0.22)]'
+                  : 'bg-white/[0.03] border-white/[0.08] text-white/55 hover:bg-white/[0.06] hover:text-white/80'
               } border`}
             >
               {cluster.name}
-              <span className={`text-[11px] rounded-full px-1 py-0.5 ${
-                isActive ? 'bg-white/[0.15] text-white/70' : 'bg-white/[0.06] text-white/30'
+              <span className={`text-[10px] font-normal tabular-nums ${
+                isActive ? 'text-white/60' : 'text-white/30'
               }`}>
                 {cluster.crystalIds.length}
               </span>

@@ -2,8 +2,35 @@ import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
+// Soft radial gradient texture for nebula sprites
+function makeNebulaTexture(): THREE.Texture {
+  const size = 256
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')!
+  const gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2)
+  gradient.addColorStop(0, 'rgba(255,255,255,1)')
+  gradient.addColorStop(0.35, 'rgba(255,255,255,0.45)')
+  gradient.addColorStop(0.7, 'rgba(255,255,255,0.08)')
+  gradient.addColorStop(1, 'rgba(255,255,255,0)')
+  ctx.fillStyle = gradient
+  ctx.fillRect(0, 0, size, size)
+  const tex = new THREE.CanvasTexture(canvas)
+  tex.colorSpace = THREE.SRGBColorSpace
+  return tex
+}
+
+const NEBULAE: { position: [number, number, number]; color: string; scale: number; opacity: number }[] = [
+  { position: [-22, 6, -28], color: '#6a3da8', scale: 38, opacity: 0.32 }, // amethyst — back-left
+  { position: [26, -4, -32], color: '#1f6f7a', scale: 44, opacity: 0.28 }, // blue-green — back-right
+  { position: [4, -16, -18], color: '#a06a2a', scale: 30, opacity: 0.22 }, // amber — bottom
+  { position: [-8, 18, -36], color: '#3a4a8a', scale: 36, opacity: 0.24 }, // deep blue — top
+]
+
 export default function Starfield() {
   const groupRef = useRef<THREE.Group>(null)
+  const nebulaTex = useMemo(() => makeNebulaTexture(), [])
 
   const { starsGeo, dustGeo } = useMemo(() => {
     // Bright stars - sparse
@@ -54,6 +81,21 @@ export default function Starfield() {
 
   return (
     <group ref={groupRef}>
+      {/* Nebula clouds — soft volumetric glow far behind everything */}
+      {NEBULAE.map((n, i) => (
+        <sprite key={i} position={n.position} scale={[n.scale, n.scale, 1]}>
+          <spriteMaterial
+            map={nebulaTex}
+            color={n.color}
+            transparent
+            opacity={n.opacity}
+            blending={THREE.AdditiveBlending}
+            depthWrite={false}
+            depthTest={false}
+          />
+        </sprite>
+      ))}
+
       <points geometry={starsGeo}>
         <pointsMaterial
           size={0.12}

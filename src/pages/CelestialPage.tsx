@@ -1,5 +1,6 @@
 import { useMemo, useRef, Suspense, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
@@ -220,7 +221,7 @@ export default function CelestialPage() {
   }, [plantedBlooms.length])
 
   const mastered = useMemo(() => crystals.filter((c) => c.mastered), [crystals])
-  const { blooms, availableFragments } = useMemo(() => computeFlowers(mastered, plantedBlooms, spentFragments), [mastered, plantedBlooms, spentFragments])
+  const { blooms, availableFragments, totalEarned } = useMemo(() => computeFlowers(mastered, plantedBlooms, spentFragments), [mastered, plantedBlooms, spentFragments])
 
   // Load garden from file on first visit
   useEffect(() => {
@@ -255,6 +256,17 @@ export default function CelestialPage() {
     plantFlower(tier, randomTheme)
   }
 
+  const prevTotalRef = useRef(0)
+  const [gainAnim, setGainAnim] = useState(false)
+
+  useEffect(() => {
+    if (totalEarned > 0 && totalEarned > prevTotalRef.current) {
+      setGainAnim(true)
+      setTimeout(() => setGainAnim(false), 2500)
+    }
+    prevTotalRef.current = totalEarned
+  }, [totalEarned])
+
   return (
     <div className="w-full h-full relative bg-[#02030a]">
       {plantedBlooms.length === 0 ? (
@@ -287,6 +299,24 @@ export default function CelestialPage() {
         <div className="absolute top-20 right-5 z-10 text-right">
           <p className="text-white/30 text-xs tracking-wider">{晶芽} 晶芽 · {晶花} 晶花 · {晶簇} 晶簇{晶王 > 0 && ` · ${晶王} 晶王`}</p>
           <p className="text-white/20 text-[11px] mt-0.5">🪙 {availableFragments} 碎片可用</p>
+          {/* Fragment-gain particles flying from left */}
+          <AnimatePresence>
+            {gainAnim && Array.from({ length: 10 }).map((_, i) => (
+              <motion.div
+                key={i}
+                initial={{ x: '-40vw', y: '-10vh', opacity: 1, scale: 1 }}
+                animate={{ x: 0, y: 0, opacity: 0, scale: 0.3 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1.2 + i * 0.12, ease: 'easeIn' }}
+                className="absolute w-1.5 h-1.5 rounded-full pointer-events-none"
+                style={{
+                  right: 0, top: 0,
+                  background: THEME_COLORS.amethyst.glow,
+                  boxShadow: `0 0 6px ${THEME_COLORS.amethyst.glow}`,
+                }}
+              />
+            ))}
+          </AnimatePresence>
         </div>
       )}
 

@@ -43,8 +43,33 @@ function buildClusters(crystals: Crystal[]): Cluster[] {
   }))
 }
 
+function mergeUniqueCrystals(primary: Crystal[], secondary: Crystal[]): Crystal[] {
+  const seenIds = new Set(primary.map((c) => c.id))
+  const seenEnglish = new Set(primary.map((c) => c.english))
+  const uniqueSecondary = secondary.filter((c) => {
+    if (seenIds.has(c.id) || seenEnglish.has(c.english)) return false
+    seenIds.add(c.id)
+    seenEnglish.add(c.english)
+    return true
+  })
+  return [...primary, ...uniqueSecondary]
+}
+
+function applyProgress(crystals: Crystal[], progress: PersistedProgress): Crystal[] {
+  return crystals.map((c) => {
+    const p = progress[c.id]
+    if (p) return { ...c, mastered: p.mastered, practicedAt: p.practicedAt }
+    return c
+  })
+}
+
+function isUpdateCrystal(crystal: Crystal): boolean {
+  return crystal.id.startsWith('crystal-new-')
+}
+
 interface CrystalState {
   crystals: Crystal[]
+  customCrystals: Crystal[]
   clusters: Cluster[]
   loaded: boolean
   archive: ArchiveBatch[]
@@ -70,7 +95,7 @@ interface CrystalState {
 type PersistedProgress = Record<string, Pick<Crystal, 'mastered' | 'practicedAt'>>
 type PersistedCrystalState = Partial<Pick<
   CrystalState,
-  'archive' | 'practiceCounts' | 'plantedBlooms' | 'spentFragments'
+  'archive' | 'customCrystals' | 'practiceCounts' | 'plantedBlooms' | 'spentFragments'
 >> & {
   _progress?: PersistedProgress
   progress?: PersistedProgress
@@ -85,6 +110,7 @@ export const useStore = create<CrystalState>()(
   persist(
     (set, get) => ({
       crystals: [],
+      customCrystals: [],
       clusters: [],
       loaded: false,
       archive: [],
@@ -100,19 +126,21 @@ export const useStore = create<CrystalState>()(
         }),
 
       setCrystals: (crystals) => {
-        const stored = (get() as CrystalState & { _progress?: PersistedProgress })._progress || {}
-        const merged = crystals.map((c) => {
-          const p = stored[c.id]
-          if (p) return { ...c, mastered: p.mastered, practicedAt: p.practicedAt }
-          return c
-        })
+        const state = get() as CrystalState & { _progress?: PersistedProgress }
+        const stored = state._progress || {}
+        const merged = applyProgress(mergeUniqueCrystals(crystals, state.customCrystals), stored)
         set({ crystals: merged, clusters: buildClusters(merged), loaded: true })
       },
 
       addCrystals: (newCrystals) => {
-        const state = get()
-        const merged = [...state.crystals, ...newCrystals]
-        set({ crystals: merged, clusters: buildClusters(merged) })
+        set((state) => {
+          const uniqueNewCrystals = mergeUniqueCrystals(state.crystals, newCrystals).slice(state.crystals.length)
+          if (uniqueNewCrystals.length === 0) return state
+
+          const customCrystals = mergeUniqueCrystals(state.customCrystals, uniqueNewCrystals)
+          const merged = [...state.crystals, ...uniqueNewCrystals]
+          return { customCrystals, crystals: merged, clusters: buildClusters(merged) }
+        })
       },
 
       markMastered: (id) =>
@@ -202,12 +230,13 @@ export const useStore = create<CrystalState>()(
     }),
     {
       name: 'crystalsay-storage',
-      version: 2,
+      version: 3,
       migrate: (persistedState: unknown) => {
         const old = persistedState as PersistedCrystalState | undefined
         return {
           ...(old ?? {}),
           _progress: old?._progress ?? old?.progress ?? {},
+          customCrystals: old?.customCrystals ?? [],
           practiceCounts: old?.practiceCounts ?? {},
           plantedBlooms: old?.plantedBlooms ?? [],
           spentFragments: old?.spentFragments ?? 0,
@@ -230,6 +259,7 @@ export const useStore = create<CrystalState>()(
           state.crystals.map((c) => [c.id, { mastered: c.mastered, practicedAt: c.practicedAt }]),
         ),
         archive: state.archive,
+        customCrystals: mergeUniqueCrystals(state.customCrystals, state.crystals.filter(isUpdateCrystal)),
         practiceCounts: state.practiceCounts,
         plantedBlooms: state.plantedBlooms,
         spentFragments: state.spentFragments,
