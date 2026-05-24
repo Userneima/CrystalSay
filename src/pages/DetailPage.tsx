@@ -47,8 +47,12 @@ export default function DetailPage() {
   const recordSentencePass = useStore((s) => s.recordSentencePass)
   const counts = useStore((s) => s.practiceCounts[id ?? '']) ?? { chunks: 0, sentence: 0 }
   const [stage, setStage] = useState<Stage>('chunks')
+  const [completionPulse, setCompletionPulse] = useState(0)
 
-  useEffect(() => { setStage('chunks') }, [id])
+  useEffect(() => {
+    setStage('chunks')
+    setCompletionPulse(0)
+  }, [id])
 
   if (!crystal) {
     return (
@@ -67,6 +71,7 @@ export default function DetailPage() {
   }
 
   const handleSentencePassed = () => {
+    setCompletionPulse((pulse) => pulse + 1)
     recordSentencePass(crystal.id)
   }
 
@@ -94,7 +99,7 @@ export default function DetailPage() {
         </div>
 
         {/* Crystal hero */}
-        <CrystalHero crystal={crystal} animateBright={crystal.mastered} />
+        <CrystalHero crystal={crystal} animateBright={crystal.mastered} completionPulse={completionPulse} />
 
         {/* Stage content */}
         <AnimatePresence mode="wait">

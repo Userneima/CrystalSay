@@ -97,7 +97,15 @@ const SHARD_PRESETS: Record<string, [number, number, number, number][]> = {
   ],
 }
 
-function CrystalMesh({ crystal, animateBright }: { crystal: Crystal; animateBright: boolean }) {
+function CrystalMesh({
+  crystal,
+  animateBright,
+  completionPulse,
+}: {
+  crystal: Crystal
+  animateBright: boolean
+  completionPulse: number
+}) {
   const groupRef = useRef<THREE.Group>(null)
   const mainMatRef = useRef<THREE.MeshStandardMaterial>(null)
   const wfMatRef = useRef<THREE.MeshBasicMaterial>(null)
@@ -106,20 +114,37 @@ function CrystalMesh({ crystal, animateBright }: { crystal: Crystal; animateBrig
   const lightRef = useRef<THREE.PointLight>(null)
   const shardMatsRef = useRef<THREE.MeshBasicMaterial[]>([])
   const glowRef = useRef<THREE.Mesh>(null)
+  const flashRef = useRef<THREE.Mesh>(null)
+  const burstRingRef = useRef<THREE.Mesh>(null)
+  const burstParticleRefs = useRef<THREE.Mesh[]>([])
+  const burstRef = useRef(0)
 
   const colors = THEME_COLORS[crystal.theme]
   const difficulty = crystal.difficulty
   const reuseValue = crystal.reuseValue
   const coreSize = 0.28 + reuseValue * 0.08
+  const isMastered = animateBright || crystal.mastered
 
-  const targetBrightness = animateBright ? 1.0 : (crystal.mastered ? 1.0 : 0.35)
-  const bRef = useRef(crystal.mastered ? 1.0 : 0.35)
+  const targetBrightness = isMastered ? 1.65 : 0.24
+  const bRef = useRef(isMastered ? 1.65 : 0.24)
 
   const prevAnimate = useRef(animateBright)
   useEffect(() => {
-    if (animateBright && !prevAnimate.current) bRef.current = 0.35
+    if (animateBright && !prevAnimate.current) {
+      bRef.current = 0.18
+      burstRef.current = 1
+    }
     prevAnimate.current = animateBright
   }, [animateBright])
+
+  const prevCompletionPulse = useRef(completionPulse)
+  useEffect(() => {
+    if (completionPulse !== prevCompletionPulse.current) {
+      bRef.current = Math.min(bRef.current, isMastered ? 1.05 : 0.18)
+      burstRef.current = 1
+    }
+    prevCompletionPulse.current = completionPulse
+  }, [completionPulse, isMastered])
 
   const geometryDetail = difficulty === '简单' ? 0 : difficulty === '中等' ? 0 : 1
   const wireframeDetail = difficulty === '简单' ? 0 : difficulty === '中等' ? 1 : 2
@@ -131,44 +156,77 @@ function CrystalMesh({ crystal, animateBright }: { crystal: Crystal; animateBrig
 
   const crystalColor = new THREE.Color(colors.primary)
   const emissiveColor = new THREE.Color(colors.glow)
+  const burstParticles = useMemo(() => {
+    return Array.from({ length: 24 }, (_, i) => {
+      const angle = (i / 24) * Math.PI * 2
+      const lift = ((i % 5) - 2) * 0.08
+      const spread = 0.72 + (i % 4) * 0.11
+      return {
+        direction: new THREE.Vector3(Math.cos(angle) * spread, lift, Math.sin(angle) * spread),
+        size: 0.018 + (i % 3) * 0.007,
+      }
+    })
+  }, [])
 
   const b = bRef.current
 
   useFrame((_, delta) => {
     if (groupRef.current) {
-      groupRef.current.rotation.y += delta * 0.6
+      groupRef.current.rotation.y += delta * (0.6 + burstRef.current * 1.4)
       groupRef.current.rotation.z += delta * 0.15
     }
     // Smooth brightness lerp
     bRef.current += (targetBrightness - bRef.current) * Math.min(delta * 6, 1)
     const bv = bRef.current
+    const burst = burstRef.current
+    const burstProgress = 1 - burst
+    const burstFlash = burst * burst
+    if (burst > 0) {
+      burstRef.current = Math.max(0, burst - delta / 1.5)
+    }
 
     // Directly update material properties for smooth animation
     if (mainMatRef.current) {
-      mainMatRef.current.emissiveIntensity = 0.4 * bv
+      mainMatRef.current.emissiveIntensity = 0.45 * bv + 1.4 * burstFlash
     }
     if (wfMatRef.current) {
-      wfMatRef.current.opacity = (difficulty === '较难' ? 0.4 : difficulty === '中等' ? 0.25 : 0.12) * bv
+      wfMatRef.current.opacity = Math.min(1, (difficulty === '较难' ? 0.4 : difficulty === '中等' ? 0.25 : 0.12) * bv + 0.35 * burstFlash)
     }
     if (wf2MatRef.current) {
-      wf2MatRef.current.opacity = (difficulty === '较难' ? 0.16 : 0.07) * bv
+      wf2MatRef.current.opacity = Math.min(1, (difficulty === '较难' ? 0.16 : 0.07) * bv + 0.22 * burstFlash)
     }
     if (innerMatRef.current) {
-      innerMatRef.current.opacity = 0.5 * bv
+      innerMatRef.current.opacity = Math.min(1, 0.5 * bv + 0.45 * burstFlash)
     }
     shardMatsRef.current.forEach((mat) => {
-      if (mat) mat.opacity = (difficulty === '较难' ? 0.55 : 0.35) * bv
+      if (mat) mat.opacity = Math.min(1, (difficulty === '较难' ? 0.55 : 0.35) * bv + 0.3 * burstFlash)
     })
     if (lightRef.current) {
-      const pulse = crystal.mastered ? (1 + Math.sin(Date.now() * 0.003) * 0.2) : 1
-      lightRef.current.intensity = 1.6 * bv * pulse
+      const pulse = isMastered ? (1 + Math.sin(Date.now() * 0.003) * 0.2) : 1
+      lightRef.current.intensity = (2.1 * bv + 4.2 * burstFlash) * pulse
     }
     // Pulsing glow aura when mastered
     if (glowRef.current) {
-      const pulse = crystal.mastered ? 1 + Math.sin(Date.now() * 0.003) * 0.15 : 1
-      glowRef.current.scale.setScalar((crystal.mastered ? 2.25 : 1.65) * pulse)
-      ;(glowRef.current.material as THREE.MeshBasicMaterial).opacity = (crystal.mastered ? 0.12 : 0.03) * bv
+      const pulse = isMastered ? 1 + Math.sin(Date.now() * 0.003) * 0.12 : 1
+      glowRef.current.scale.setScalar((isMastered ? 1.72 : 1.18) * pulse + burstProgress * 0.35 * burst)
+      ;(glowRef.current.material as THREE.MeshBasicMaterial).opacity = Math.min(0.32, (isMastered ? 0.13 : 0.02) * bv + 0.16 * burst)
     }
+    if (flashRef.current) {
+      flashRef.current.scale.setScalar(0.9 + burstProgress * 0.75)
+      ;(flashRef.current.material as THREE.MeshBasicMaterial).opacity = 0.36 * burstFlash
+    }
+    if (burstRingRef.current) {
+      burstRingRef.current.scale.setScalar(0.65 + burstProgress * 1.2)
+      ;(burstRingRef.current.material as THREE.MeshBasicMaterial).opacity = 0.65 * burst
+    }
+    burstParticleRefs.current.forEach((particle, i) => {
+      const def = burstParticles[i]
+      if (!particle || !def) return
+      particle.position.copy(def.direction).multiplyScalar(0.15 + burstProgress * 1.05)
+      particle.scale.setScalar(0.5 + burst * 1.4)
+      ;(particle.material as THREE.MeshBasicMaterial).opacity = Math.max(0, burst * 0.9)
+      particle.rotation.y += delta * (2 + i * 0.04)
+    })
   })
 
   return (
@@ -264,33 +322,87 @@ function CrystalMesh({ crystal, animateBright }: { crystal: Crystal; animateBrig
       {/* Point light */}
       <pointLight ref={lightRef} color={colors.glow} intensity={1.5 * b} distance={coreSize * 8} decay={2} />
 
-      {/* Mastery glow */}
-      <mesh ref={glowRef} scale={crystal.mastered ? 2.25 : 1.65}>
-        <sphereGeometry args={[coreSize, 24, 24]} />
+      {/* Lighting-up flash */}
+      <mesh ref={flashRef} scale={1.1}>
+        <sphereGeometry args={[coreSize * 1.08, 24, 24]} />
         <meshBasicMaterial
-          color={colors.glow}
+          color="#ffffff"
           transparent
-          opacity={(crystal.mastered ? 0.12 : 0.03) * b}
+          opacity={0}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
         />
       </mesh>
+
+      {/* Expanding burst ring */}
+      <mesh ref={burstRingRef} rotation={[Math.PI / 2, 0, 0]} scale={0.7}>
+        <torusGeometry args={[coreSize * 1.25, coreSize * 0.035, 10, 64]} />
+        <meshBasicMaterial
+          color={colors.glow}
+          transparent
+          opacity={0}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+        />
+      </mesh>
+
+      {/* Mastery glow */}
+      <mesh ref={glowRef} scale={isMastered ? 1.72 : 1.18}>
+        <sphereGeometry args={[coreSize, 24, 24]} />
+        <meshBasicMaterial
+          color={colors.glow}
+          transparent
+          opacity={(isMastered ? 0.13 : 0.03) * b}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+        />
+      </mesh>
+
+      {/* Burst particles */}
+      {burstParticles.map((particle, i) => (
+        <mesh
+          key={`burst-${i}`}
+          ref={(el) => { if (el) burstParticleRefs.current[i] = el }}
+          position={[0, 0, 0]}
+        >
+          <sphereGeometry args={[particle.size, 6, 6]} />
+          <meshBasicMaterial
+            color={i % 4 === 0 ? '#ffffff' : colors.glow}
+            transparent
+            opacity={0}
+            blending={THREE.AdditiveBlending}
+            depthWrite={false}
+          />
+        </mesh>
+      ))}
     </group>
   )
 }
 
-export default function CrystalHero({ crystal, animateBright = false }: { crystal: Crystal; animateBright?: boolean }) {
+export default function CrystalHero({
+  crystal,
+  animateBright = false,
+  completionPulse = 0,
+}: {
+  crystal: Crystal
+  animateBright?: boolean
+  completionPulse?: number
+}) {
   return (
     <div className="w-full flex justify-center">
       <div className="relative w-32 h-32 sm:w-36 sm:h-36">
         <Canvas
           camera={{ position: [0, 0.2, 2.8], fov: 35 }}
           gl={{ antialias: true, alpha: true, premultipliedAlpha: false }}
-          style={{ background: 'transparent' }}
+          style={{
+            background: 'transparent',
+            WebkitMaskImage: 'radial-gradient(circle, black 62%, transparent 82%)',
+            maskImage: 'radial-gradient(circle, black 62%, transparent 82%)',
+          }}
           onCreated={({ gl }) => { gl.setClearColor(0x000000, 0) }}
         >
           <ambientLight intensity={0.3} />
-          <CrystalMesh crystal={crystal} animateBright={animateBright} />
+          <CrystalMesh crystal={crystal} animateBright={animateBright} completionPulse={completionPulse} />
         </Canvas>
       </div>
     </div>
