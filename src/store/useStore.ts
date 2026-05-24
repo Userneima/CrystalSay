@@ -136,13 +136,13 @@ export const useStore = create<CrystalState>()(
           const counts = { ...state.practiceCounts }
           const cur = counts[id] || { chunks: 0, sentence: 0 }
           counts[id] = { ...cur, sentence: cur.sentence + 1 }
-          const shouldMaster = counts[id].chunks + counts[id].sentence >= 2
+          const wasMastered = state.crystals.some((c) => c.id === id && c.mastered)
           return {
             practiceCounts: counts,
-            crystals: shouldMaster
-              ? state.crystals.map((c) => (c.id === id ? { ...c, mastered: true, practicedAt: new Date().toISOString() } : c))
-              : state.crystals,
-            shatteringIds: shouldMaster ? [...state.shatteringIds, id] : state.shatteringIds,
+            crystals: state.crystals.map((c) =>
+              c.id === id ? { ...c, mastered: true, practicedAt: new Date().toISOString() } : c,
+            ),
+            shatteringIds: wasMastered ? state.shatteringIds : [...state.shatteringIds, id],
           }
         }),
 

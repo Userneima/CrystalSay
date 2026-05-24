@@ -156,18 +156,18 @@ function CrystalMesh({ crystal, animateBright }: { crystal: Crystal; animateBrig
     if (innerMatRef.current) {
       innerMatRef.current.opacity = 0.5 * bv
     }
-    shardMatsRef.current.forEach((mat, i) => {
+    shardMatsRef.current.forEach((mat) => {
       if (mat) mat.opacity = (difficulty === '较难' ? 0.55 : 0.35) * bv
     })
     if (lightRef.current) {
       const pulse = crystal.mastered ? (1 + Math.sin(Date.now() * 0.003) * 0.2) : 1
-      lightRef.current.intensity = 1.2 * bv * pulse
+      lightRef.current.intensity = 1.6 * bv * pulse
     }
     // Pulsing glow aura when mastered
-    if (glowRef.current && crystal.mastered) {
-      const pulse = 1 + Math.sin(Date.now() * 0.003) * 0.15
-      glowRef.current.scale.setScalar(1.8 * pulse)
-      ;(glowRef.current.material as THREE.MeshBasicMaterial).opacity = 0.05 * pulse
+    if (glowRef.current) {
+      const pulse = crystal.mastered ? 1 + Math.sin(Date.now() * 0.003) * 0.15 : 1
+      glowRef.current.scale.setScalar((crystal.mastered ? 2.25 : 1.65) * pulse)
+      ;(glowRef.current.material as THREE.MeshBasicMaterial).opacity = (crystal.mastered ? 0.12 : 0.03) * bv
     }
   })
 
@@ -263,6 +263,18 @@ function CrystalMesh({ crystal, animateBright }: { crystal: Crystal; animateBrig
 
       {/* Point light */}
       <pointLight ref={lightRef} color={colors.glow} intensity={1.5 * b} distance={coreSize * 8} decay={2} />
+
+      {/* Mastery glow */}
+      <mesh ref={glowRef} scale={crystal.mastered ? 2.25 : 1.65}>
+        <sphereGeometry args={[coreSize, 24, 24]} />
+        <meshBasicMaterial
+          color={colors.glow}
+          transparent
+          opacity={(crystal.mastered ? 0.12 : 0.03) * b}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+        />
+      </mesh>
     </group>
   )
 }

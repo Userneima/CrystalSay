@@ -1,5 +1,5 @@
-import { useState, useMemo, Suspense, useCallback, useEffect, useRef } from 'react'
-import { Canvas } from '@react-three/fiber'
+import { useState, useMemo, Suspense, useCallback, useRef } from 'react'
+import { Canvas, useFrame } from '@react-three/fiber'
 import { useNavigate } from 'react-router-dom'
 import * as THREE from 'three'
 import { useStore } from '../store/useStore'

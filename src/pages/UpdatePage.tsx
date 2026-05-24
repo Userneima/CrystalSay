@@ -45,12 +45,6 @@ function rawToCrystal(raw: RawCrystal, index: number): Crystal {
   }
 }
 
-const DIFFICULTY_DOT: Record<string, string> = {
-  '简单': 'bg-green-400',
-  '中等': 'bg-yellow-400',
-  '较难': 'bg-red-400',
-}
-
 export default function UpdatePage() {
   const navigate = useNavigate()
   const addCrystals = useStore((s) => s.addCrystals)
@@ -264,7 +258,6 @@ export default function UpdatePage() {
                         <div className="flex flex-col gap-2">
                           {groupCrystals.map((c) => {
                             const isSel = selected.has(c.id)
-                            const theme = THEME_COLORS[c.theme]
                             return (
                               <button
                                 key={c.id}

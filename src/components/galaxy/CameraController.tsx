@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react'
-import { useFrame, useThree } from '@react-three/fiber'
+import { useFrame } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 
@@ -24,7 +24,6 @@ export default function CameraController({
   onActiveClusterChange,
 }: CameraControllerProps) {
   const controlsRef = useRef<any>(null)
-  const { camera } = useThree()
   const animating = useRef(false)
   const lastActiveId = useRef<string | null>(null)
 
@@ -34,7 +33,7 @@ export default function CameraController({
     }
   }, [targetPosition])
 
-  useFrame((_, delta) => {
+  useFrame(() => {
     if (animating.current && targetPosition && controlsRef.current) {
       const target = new THREE.Vector3(...targetPosition)
       const current = controlsRef.current.target as THREE.Vector3

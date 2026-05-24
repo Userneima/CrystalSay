@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import type { Crystal } from '../../types'
 import { diagnoseSentence, type DiagnosisResult } from '../../utils/sentenceCheck'
 
@@ -20,6 +20,7 @@ export default function SentencePractice({ crystal, onPassed }: SentencePractice
   )
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
+  const reportedPassedRef = useRef(false)
 
   const startRecording = useCallback(async () => {
     setVoiceError(null)
@@ -66,6 +67,17 @@ export default function SentencePractice({ crystal, onPassed }: SentencePractice
 
   const diagPassed = diagnosis?.passed ?? false
   const canSubmit = input.trim().length > 0 && !diagPassed
+
+  useEffect(() => {
+    reportedPassedRef.current = false
+  }, [crystal.id])
+
+  useEffect(() => {
+    if (diagPassed && !reportedPassedRef.current) {
+      reportedPassedRef.current = true
+      onPassed()
+    }
+  }, [diagPassed, onPassed])
 
   const togglePlayback = () => {
     const audio = audioRef.current
@@ -127,13 +139,7 @@ export default function SentencePractice({ crystal, onPassed }: SentencePractice
         </div>
       )}
 
-      {diagPassed ? (
-        <button onClick={() => onPassed()}
-          className="w-full py-3 rounded-full text-sm font-semibold tracking-wider text-white transition-all active:scale-95 min-h-[48px]"
-          style={{ background: 'linear-gradient(135deg, rgba(74,222,128,0.7), rgba(52,211,153,0.7))', boxShadow: '0 0 30px rgba(74,222,128,0.15)' }}>
-          标记为已练习
-        </button>
-      ) : (
+      {!diagPassed && (
         <button onClick={handleDiagnose} disabled={!canSubmit}
           className="w-full py-3 rounded-full text-sm font-semibold tracking-wider transition-all min-h-[48px] active:scale-[0.98] disabled:opacity-30"
           style={{ background: canSubmit ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)', border: `1px solid ${canSubmit ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.06)'}`, color: canSubmit ? '#fff' : 'rgba(255,255,255,0.15)' }}>

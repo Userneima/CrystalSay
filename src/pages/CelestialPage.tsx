@@ -7,12 +7,6 @@ import { useStore } from '../store/useStore'
 import { THEME_COLORS } from '../utils/themeMapping'
 import type { Crystal, Theme } from '../types'
 
-function hashId(id: string, seed: number): number {
-  let h = seed
-  for (let i = 0; i < id.length; i++) h = ((h << 5) - h + id.charCodeAt(i)) | 0
-  return Math.abs(h) / 2147483647
-}
-
 const FRAGMENT_COST: Record<string, number> = { 晶王: 60, 晶簇: 35, 晶花: 15, 晶芽: 5 }
 type FlowerTier = keyof typeof FRAGMENT_COST
 
@@ -89,7 +83,8 @@ function CrystalFlower({ bloom, index, position }: {
     return t
   }, [scale, n, layers, form])
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
+    void state
     if (groupRef.current) {
       groupRef.current.rotation.y += delta * 0.06
       const sway = Math.sin(Date.now() * 0.0008 + position[0]) * 0.012
@@ -127,7 +122,7 @@ function FragmentSoil({ count }: { count: number }) {
     }
     return { positions: pos, colors: cols }
   }, [count])
-  useFrame((_, delta) => { if (ref.current) ref.current.rotation.y += delta * 0.03 })
+  useFrame((state, delta) => { void state; if (ref.current) ref.current.rotation.y += delta * 0.03 })
   return <points ref={ref}><bufferGeometry><bufferAttribute attach="attributes-position" args={[data.positions, 3]} /><bufferAttribute attach="attributes-color" args={[data.colors, 3]} /></bufferGeometry><pointsMaterial size={0.06} vertexColors transparent opacity={0.6} blending={THREE.AdditiveBlending} depthWrite={false} /></points>
 }
 
@@ -141,7 +136,7 @@ function Fireflies() {
     }
     return { positions: p, bases: base, speeds, phases }
   }, [])
-  useFrame((_, delta) => {
+  useFrame(() => {
     if (ref.current) {
       const arr = ref.current.geometry.attributes.position.array as Float32Array; const t = Date.now() * 0.001
       for (let i = 0; i < data.positions.length / 3; i++) {
@@ -167,7 +162,7 @@ function Scene() {
   const positions = useMemo(() => {
     const taken: { x: number; z: number }[] = []
     const minDist = 0.7
-    return blooms.map((_, i) => {
+    return blooms.map(() => {
       let px = 0, pz = 0, att = 0
       do {
         const angle = Math.random() * Math.PI * 2
@@ -202,7 +197,7 @@ export default function CelestialPage() {
   const plantFlower = useStore((s) => s.plantFlower)
   const removeFlower = useStore((s) => s.removeFlower)
   const mastered = useMemo(() => crystals.filter((c) => c.mastered), [crystals])
-  const { blooms, availableFragments, totalEarned } = useMemo(() => computeFlowers(mastered, plantedBlooms, spentFragments), [mastered, plantedBlooms, spentFragments])
+  const { blooms, availableFragments } = useMemo(() => computeFlowers(mastered, plantedBlooms, spentFragments), [mastered, plantedBlooms, spentFragments])
 
   // Demo: clear old state and seed 1000 fragments
   useEffect(() => {
